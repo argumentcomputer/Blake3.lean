@@ -25,7 +25,7 @@
         inherit name;
         src = ./src;
         debug = true;
-        linkFlags = [ "-lblake3" ];
+        linkFlags = [ blake3-c ];
         staticLibDeps = [ blake3-c ];
       };
     in
@@ -35,8 +35,6 @@
         inherit (project) modRoot Blake3;
         inherit (leanPkgs) lean;
       };
-
-      defaultApp = self.apps.${system}.${name};
 
       defaultPackage = project.modRoot;
       devShell = pkgs.mkShell {
