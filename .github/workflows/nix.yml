@@ -10,7 +10,7 @@ jobs:
     defaults:
       run:
         # Can't use `nix-shell` without configured nixpkgs path on macOS
-        shell: nix -v --experimental-features "nix-command flakes" run .#ciShell -- bash -euxo pipefail {0}
+        shell: nix -v --experimental-features "nix-command flakes" run nixpkgs#coreutils -- bash -euxo pipefail {0}
     strategy:
       matrix:
         include:
@@ -93,7 +93,7 @@ jobs:
       #   if: matrix.name == 'Linux'
       - name: Push to Cachix
         run: |
-          [ -z "$CACHIX_AUTH_TOKEN" ] || cachix push -j4 lean4 ./push-* || true
+          [ -z "$CACHIX_AUTH_TOKEN" ] || cachix push -j4 lean-yatima ./push-* || true
         env:
           CACHIX_AUTH_TOKEN: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Rebuild Nix Store Cache
