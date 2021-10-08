@@ -7,11 +7,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1633651932,
-        "narHash": "sha256-16YPx5x3pAkdxDkarD78vl96ABLBWIo/ET5Lp7QmF5M=",
+        "lastModified": 1633731038,
+        "narHash": "sha256-bDhUhQKWoPSzE9ygUeGMgheUtmrzhit1GSRoJrrOK8c=",
         "owner": "yatima-inc",
         "repo": "BLAKE3",
-        "rev": "d200e49d5702aab42856bef4b8bf985931216398",
+        "rev": "51d3142ae99644ece3b6cf11dd4a8e27f2642c11",
         "type": "github"
       },
       "original": {
@@ -91,11 +91,11 @@
         "temci": "temci"
       },
       "locked": {
-        "lastModified": 1633617896,
-        "narHash": "sha256-IMUnV78ctmrX/MeyCt2eht5q0E8n8N1baziHVMzD+DE=",
+        "lastModified": 1633722410,
+        "narHash": "sha256-zsJ0RZgRxOzUGIdO/SEjaxtZwAPa5kwmAmpNhOM7aBs=",
         "owner": "leanprover",
         "repo": "lean4",
-        "rev": "305d035f17d9b4d0297c0345bf67e5b9b360595b",
+        "rev": "1f1dc0b471823eb813b02b90db3c191ae387fc0b",
         "type": "github"
       },
       "original": {
