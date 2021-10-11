@@ -10,7 +10,7 @@ jobs:
     defaults:
       run:
         # Can't use `nix-shell` without configured nixpkgs path on macOS
-        shell: nix -v --experimental-features "nix-command flakes" run nixpkgs#coreutils -c bash -euxo pipefail {0}
+        shell: nix -v --experimental-features "nix-command flakes" shell nixpkgs#coreutils --command bash -euxo pipefail {0}
     strategy:
       matrix:
         include:
