@@ -56,7 +56,7 @@ jobs:
             extra-sandbox-paths = /nix/var/cache/ccache
             extra-substituters = file://${{ github.workspace }}/nix-store-cache?priority=10&trusted=true
             extra-trusted-substituters = https://lean4.cachix.org/
-            extra-trusted-public-keys = lean4.cachix.org-1:mawtxSxcaiWE24xCXXgh3qnvlTkyU7evRRnGeAhD4Wk=' > ~/.config/nix/nix.conf
+            extra-trusted-public-keys = lean4.cachix.org-1:mawtxSxcaiWE24xCXXgh3qnvlTkyU7evRRnGeAhD4Wk= yatima.cachix.org-1:6jbu56QEDZs5hceqvWBxmh3XYQ7qPb3iuSww0yq7jUY= lean-yatima.cachix.org-1:8pRoDlOpkpqcRMuf3KAjEM+u8k8F3cuPYBnwPfFuc68= ' > ~/.config/nix/nix.conf
           sudo mkdir -m0770 -p /nix/var/cache/ccache
           # macOS standard chown doesn't support --reference
           nix -v --experimental-features "nix-command flakes" shell nixpkgs#coreutils -c sudo chown --reference=/nix /nix/var/cache/ccache
@@ -111,5 +111,6 @@ jobs:
       #   if: matrix.name == 'Linux' && github.ref == 'refs/heads/main' && github.event_name == 'push'
       - name: CCache stats
         run: CCACHE_DIR=/nix/var/cache/ccache nix run nixpkgs/nixos-21.05#ccache -- -s
+        if: matrix.name != 'macOS'
       - name: Shell check
         run: nix shell --command echo OK
