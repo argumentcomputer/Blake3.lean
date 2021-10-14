@@ -3,13 +3,14 @@
 -/
 namespace Blake3
 
+/-
+BLAKE3 constant values.
+-/
 constant BLAKE3_KEY_LEN: Nat := 32
 constant BLAKE3_OUT_LEN: Nat := 32
 constant BLAKE3_BLOCK_LEN: Nat := 64
 constant BLAKE3_CHUNK_LEN: Nat := 1024
 constant BLAKE3_MAX_DEPTH: Nat := 54
-
-universe u
 
 /-
 Simplification rules for ensuring type safety of Blake3Hash
@@ -33,8 +34,12 @@ where to_ByteArray_loop_size :
 A dependent ByteArray which guarantees the correct byte length.
 -/
 def Blake3Hash : Type := { r : ByteArray // r.size = BLAKE3_OUT_LEN }
+
+deriving instance ToString for Blake3Hash
+
 instance : Inhabited Blake3Hash where
   default := ⟨(List.replicate BLAKE3_OUT_LEN 0).toByteArray, by simp⟩
+
 
 @[extern "blake3_hasher"]
 constant HasherPointed : PointedType

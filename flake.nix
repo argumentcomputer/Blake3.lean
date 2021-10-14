@@ -39,13 +39,22 @@
           linkFlags = [ blake3-c ];
           staticLibDeps = [ blake3-c ];
         };
+        tests = leanPkgs.buildLeanPackage {
+          name = "Tests";
+          src = ./tests;
+          debug = true;
+          deps = [ project ];
+        };
       in
       {
         inherit project;
         packages = {
           inherit (project) modRoot Blake3;
           inherit (leanPkgs) lean;
+          tests = tests.modRoot;
         };
+
+        checks.tests = tests;
 
         defaultPackage = project.modRoot;
         devShell = pkgs.mkShell {
