@@ -91,6 +91,6 @@ def hash (input : ByteArray) : Blake3Hash :=
   let hasher := hasherUpdate hasher input (USize.ofNat input.size)
   let output := hasherFinalize hasher (USize.ofNat BLAKE3_OUT_LEN)
   if h : output.size = BLAKE3_OUT_LEN then
-    output
+    ⟨output, h⟩
   else 
     panic "Incorrect output size"
