@@ -47,9 +47,17 @@ def Hasher : Type := HasherPointed.type
 instance : Inhabited Hasher := ⟨HasherPointed.val⟩
 
 /-
+Perform an unsafe IO operation for use in a pure context.
+-/
+unsafe def unsafeIO' [Inhabited α] (k : IO α) : α :=
+  match unsafeIO k with
+  | Except.ok a => a
+  | Except.error e => panic e.toString
+
+/-
 Version of the linked BLAKE3 implementation library.
 -/
-@[extern "blake3_version"]
+@[extern "l_blake3_version"]
 constant internalVersion : Unit → String
 
 constant version : String := internalVersion Unit.unit
@@ -70,16 +78,32 @@ constant initHasherDeriveKey (context: String) : Hasher
 @[extern "blake3_hasher_init_derive_key_raw"]
 constant initHasherDeriveKeyRaw (context: String) (contextLength : USize) : Hasher
 
+/- @[extern "blake3_hasher_update"] -/
+/- constant hasherUpdateExtern : (hasher : Hasher) → (input : ByteArray) → (length : USize) → IO Unit -/
+
+/- unsafe def hasherUpdateImpl (hasher : Hasher) (input : ByteArray) (length : USize) : Hasher := -/
+/-   unsafeIO' do -/
+/-     hasherUpdateExtern hasher input length -/
+/-     hasher -/
+
 /-
 Put more data into the hasher. This can be called several times.
 -/
-@[extern "blake3_hasher_update"]
-constant hasherUpdate : (hasher : Hasher) → (input : ByteArray) → (length : USize) → Hasher
+/- @[implementedBy hasherUpdateImpl] -/
+@[extern "l_blake3_hasher_update"]
+constant hasherUpdate (hasher : Hasher) (input : ByteArray) (length : USize) : Hasher
 
+/- @[extern "blake3_hasher_finalize"] -/
+/- constant hasherFinalizeExtern : (hasher : Hasher) → (length : USize) → IO Unit -/
+
+/- unsafe def hasherFinalizeImpl (hasher : Hasher) (length : USize) : ByteArray := -/
+/-   unsafeIO' do -/
+/-     hasherFinalizeExtern hasher length -/
+/-     hasher -/
 /-
 Finalize the hasher and write the output to an initialized array.
 -/
-@[extern "blake3_hasher_finalize"]
+@[extern "l_blake3_hasher_finalize"]
 constant hasherFinalize : (hasher : Hasher) → (length : USize) → ByteArray
 
 /-
