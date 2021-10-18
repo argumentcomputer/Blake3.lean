@@ -12,17 +12,17 @@ let
         sourceFiles = "lean-blake3.c";
         staticLibDeps = [ blake3-c lean ];
         leanPkgs = lean.packages.${system};
-        inherit (lean) lean-bin-tools-unwrapped;
+        commonGccOptions = "-Wall -O3 -I${lean-bin-tools-unwrapped}/include -Iinclude ${gccOptions}";
+        inherit (leanPkgs) lean-bin-tools-unwrapped;
         buildSteps =
           if archive then
             [
-              "gcc ${gccOptions} -c -Wall -O3 -I${lean-bin-tools-unwrapped}/include -Iinclude -o blake3.o ${sourceFiles}"               
-
+              "gcc ${commonGccOptions} -c -o blake3.o ${sourceFiles}"
               "ar rcs ${libName} blake3.o"
 
             ] else
             [
-              "gcc ${gccOptions} -shared -Wall -O3 -o ${libName} ${sourceFiles}"
+              "gcc ${commonGccOptions} -shared -Wall -O3 -o ${libName} ${sourceFiles}"
             ];
       in
       pkgs.stdenv.mkDerivation {
@@ -31,12 +31,8 @@ let
         NIX_DEBUG = 1;
         src = ./.;
         configurePhase = ''
-          # mkdir include
-          ln -s ${lean}/src/include/lean include
-          ln -s ${blake3-c}/src/include/lean include
-          # cat lean.h
-          ls -alR
-          ls -alR include
+          mkdir include
+          ln -s ${blake3-c.headerFile} include/blake3.h
         '';
         buildPhase = pkgs.lib.concatStringsSep "\n" buildSteps;
         installPhase = ''

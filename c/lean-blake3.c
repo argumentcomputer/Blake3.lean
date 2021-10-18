@@ -1,4 +1,4 @@
-#include "lean.h"
+#include "lean/lean.h"
 #include "blake3.h"
 
 static lean_object* l_blake3_version() {
