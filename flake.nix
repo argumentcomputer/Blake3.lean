@@ -38,22 +38,25 @@
         project = leanPkgs.buildLeanPackage {
           inherit name;
           src = ./src;
-          debug = true;
-          linkFlags = [ blake3-shim ];
-          staticLibDeps = [ blake3-shim ];
+          # debug = true;
+          # linkFlags = [ blake3-shim ];
+          # staticLibDeps = [ blake3-shim ];
+          pluginDeps = [ blake3-shim.dynamicLib ];
         };
         tests = leanPkgs.buildLeanPackage {
           name = "Tests";
           src = ./tests;
           debug = true;
           deps = [ project ];
+          pluginDeps = [ blake3-shim ];
+          staticLibDeps = [ blake3-shim ];
         };
       in
       {
         inherit project;
         packages = {
           inherit blake3-shim;
-          inherit (project) modRoot Blake3;
+          inherit (project) modRoot executable;
           inherit (leanPkgs) lean;
           tests = tests.modRoot;
         };

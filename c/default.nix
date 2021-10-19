@@ -1,15 +1,15 @@
 { pkgs, system, lean, blake3-c }:
 let
   cLib = pkgs.lib.makeOverridable
-    ({ name ? "blake3-shim"
-       # Wrap object files in an archive for static linking
-     , archive ? false
+    # Wrap object files in an archive for static linking
+    ({ archive ? false
      , libExtension ? if archive then "a" else "so"
-     , libName ? "lib${name}.${libExtension}"
+     , libName ? "libblake3.${libExtension}"
      , gccOptions ? ""
      }:
       let
-        sourceFiles = "lean-blake3.c";
+        name = libName;
+        sourceFiles = "blake3-shim.c";
         staticLibDeps = [ blake3-c lean ];
         leanPkgs = lean.packages.${system};
         commonGccOptions = "-Wall -O3 -I${lean-bin-tools-unwrapped}/include -Iinclude ${gccOptions}";

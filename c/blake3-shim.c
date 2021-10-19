@@ -1,7 +1,7 @@
 #include "lean/lean.h"
 #include "blake3.h"
 
-static lean_object* l_blake3_version() {
+lean_object* l_blake3_version() {
   const char * v = blake3_version();
   lean_obj_res r = lean_mk_string(v);
   return r;
