@@ -38,9 +38,9 @@
         project = leanPkgs.buildLeanPackage {
           inherit name;
           src = ./src;
-          # debug = true;
+          debug = true;
           # linkFlags = [ blake3-shim ];
-          # staticLibDeps = [ blake3-shim ];
+          staticLibDeps = [ blake3-c ];
           pluginDeps = [ blake3-shim.dynamicLib ];
         };
         tests = leanPkgs.buildLeanPackage {
