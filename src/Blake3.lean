@@ -57,7 +57,7 @@ unsafe def unsafeIO' [Inhabited α] (k : IO α) : α :=
 /-
 Version of the linked BLAKE3 implementation library.
 -/
-@[extern "l_blake3_version"]
+@[extern "lean_blake3_version"]
 constant internalVersion : Unit → String
 
 constant version : String := internalVersion Unit.unit
@@ -65,26 +65,19 @@ constant version : String := internalVersion Unit.unit
 /-
 Initialize a hasher.
 -/
-@[extern "blake3_hasher_init"]
+@[extern "lean_blake3_initialize"]
 constant initHasher : Hasher
 
-@[extern "blake3_hasher_init_keyed"]
-constant initHasherKeyed (key: Array UInt8) : Hasher
+/- @[extern "blake3_hasher_init_keyed"] -/
+/- constant initHasherKeyed (key: Array UInt8) : Hasher -/
 
 
-@[extern "blake3_hasher_init_derive_key"]
-constant initHasherDeriveKey (context: String) : Hasher
+/- @[extern "blake3_hasher_init_derive_key"] -/
+/- constant initHasherDeriveKey (context: String) : Hasher -/
 
-@[extern "blake3_hasher_init_derive_key_raw"]
-constant initHasherDeriveKeyRaw (context: String) (contextLength : USize) : Hasher
+/- @[extern "blake3_hasher_init_derive_key_raw"] -/
+/- constant initHasherDeriveKeyRaw (context: String) (contextLength : USize) : Hasher -/
 
-/- @[extern "blake3_hasher_update"] -/
-/- constant hasherUpdateExtern : (hasher : Hasher) → (input : ByteArray) → (length : USize) → IO Unit -/
-
-/- unsafe def hasherUpdateImpl (hasher : Hasher) (input : ByteArray) (length : USize) : Hasher := -/
-/-   unsafeIO' do -/
-/-     hasherUpdateExtern hasher input length -/
-/-     hasher -/
 
 /-
 Put more data into the hasher. This can be called several times.
@@ -93,13 +86,6 @@ Put more data into the hasher. This can be called several times.
 @[extern "l_blake3_hasher_update"]
 constant hasherUpdate (hasher : Hasher) (input : ByteArray) (length : USize) : Hasher
 
-/- @[extern "blake3_hasher_finalize"] -/
-/- constant hasherFinalizeExtern : (hasher : Hasher) → (length : USize) → IO Unit -/
-
-/- unsafe def hasherFinalizeImpl (hasher : Hasher) (length : USize) : ByteArray := -/
-/-   unsafeIO' do -/
-/-     hasherFinalizeExtern hasher length -/
-/-     hasher -/
 /-
 Finalize the hasher and write the output to an initialized array.
 -/
@@ -109,8 +95,8 @@ constant hasherFinalize : (hasher : Hasher) → (length : USize) → ByteArray
 /-
 Finalize the hasher and write the output to an initialized array.
 -/
-@[extern "blake3_hasher_finalize_seek"]
-constant hasherFinalizeSeek : (hasher : Hasher) → (seek : UInt64) → (length : USize) → ByteArray
+/- @[extern "blake3_hasher_finalize_seek"] -/
+/- constant hasherFinalizeSeek : (hasher : Hasher) → (seek : UInt64) → (length : USize) → ByteArray -/
 
 /-
 Hash a ByteArray
