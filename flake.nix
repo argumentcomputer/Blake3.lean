@@ -39,26 +39,23 @@
           inherit name;
           src = ./src;
           debug = true;
-          # linkFlags = [ blake3-shim ];
-          staticLibDeps = [ blake3-c ];
-          pluginDeps = [ blake3-shim.dynamicLib ];
+          staticLibDeps = [ blake3-c.staticLib blake3-shim.staticLib ];
         };
         tests = leanPkgs.buildLeanPackage {
           name = "Tests";
           src = ./tests;
           debug = true;
           deps = [ project ];
-          pluginDeps = [ blake3-shim ];
-          staticLibDeps = [ blake3-shim ];
+          pluginDeps = [ project.sharedLib ];
         };
       in
       {
-        inherit project;
+        inherit project tests;
         packages = {
           inherit blake3-shim;
-          inherit (project) modRoot executable;
+          inherit (project) modRoot sharedLib staticLib;
           inherit (leanPkgs) lean;
-          tests = tests.modRoot;
+          tests = tests.executable;
         };
 
         checks.tests = tests;

@@ -41,7 +41,7 @@ instance : Inhabited Blake3Hash where
   default := ⟨(List.replicate BLAKE3_OUT_LEN 0).toByteArray, by simp⟩
 
 
-@[extern "blake3_hasher"]
+/- @[extern "lean_blake3_initialize"] -/
 constant HasherPointed : PointedType
 def Hasher : Type := HasherPointed.type
 instance : Inhabited Hasher := ⟨HasherPointed.val⟩
@@ -60,13 +60,14 @@ Version of the linked BLAKE3 implementation library.
 @[extern "lean_blake3_version"]
 constant internalVersion : Unit → String
 
-constant version : String := internalVersion Unit.unit
+constant version : String := internalVersion ()
 
 /-
 Initialize a hasher.
 -/
 @[extern "lean_blake3_initialize"]
-constant initHasher : Hasher
+constant initHasher : Unit → Hasher
+
 
 /- @[extern "blake3_hasher_init_keyed"] -/
 /- constant initHasherKeyed (key: Array UInt8) : Hasher -/
@@ -83,13 +84,13 @@ constant initHasher : Hasher
 Put more data into the hasher. This can be called several times.
 -/
 /- @[implementedBy hasherUpdateImpl] -/
-@[extern "l_blake3_hasher_update"]
+@[extern "lean_blake3_hasher_update"]
 constant hasherUpdate (hasher : Hasher) (input : ByteArray) (length : USize) : Hasher
 
 /-
 Finalize the hasher and write the output to an initialized array.
 -/
-@[extern "l_blake3_hasher_finalize"]
+@[extern "lean_blake3_hasher_finalize"]
 constant hasherFinalize : (hasher : Hasher) → (length : USize) → ByteArray
 
 /-
@@ -102,10 +103,10 @@ Finalize the hasher and write the output to an initialized array.
 Hash a ByteArray
 -/
 def hash (input : ByteArray) : Blake3Hash :=
-  let hasher := initHasher
+  let hasher := initHasher ()
   let hasher := hasherUpdate hasher input (USize.ofNat input.size)
   let output := hasherFinalize hasher (USize.ofNat BLAKE3_OUT_LEN)
   if h : output.size = BLAKE3_OUT_LEN then
     ⟨output, h⟩
-  else 
-    panic "Incorrect output size"
+  else
+    panic! "Incorrect output size"

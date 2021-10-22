@@ -1,11 +1,13 @@
 { pkgs, system, lean, blake3-c }:
 let
+  inherit (pkgs) stdenv;
   buildCLib = pkgs.lib.makeOverridable
     # Wrap object files in an archive for static linking
     ({ archive ? false
      , libExtension ? if archive then "a" else "so"
      , libName ? "libblake3.${libExtension}"
-     , gccOptions ? [ ]
+     , cc ? stdenv.cc
+     , ccOptions ? [ ]
      , debug ? false
      }:
       let
@@ -14,22 +16,22 @@ let
         sourceFiles = "blake3-shim.c";
         staticLibDeps = [ blake3-c lean ];
         leanPkgs = lean.packages.${system};
-        commonGccOptions = lib.concatStringsSep " " ([ "-Wall" "-O3" "-I${lean-bin-tools-unwrapped}/include" "-Iinclude" (if debug then "-ggdb" else "") ] ++ gccOptions);
+        commonCCOptions = lib.concatStringsSep " " ([ "-Wall" "-O3" "-I${lean-bin-tools-unwrapped}/include" "-Iinclude" (if debug then "-ggdb" else "") ] ++ ccOptions);
         inherit (leanPkgs) lean-bin-tools-unwrapped;
         buildSteps =
           if archive then
             [
-              "gcc ${commonGccOptions} -c -o blake3.o ${sourceFiles}"
+              "${cc}/bin/cc ${commonCCOptions} -c -o blake3.o ${sourceFiles}"
               "ar rcs ${libName} blake3.o"
 
             ] else
             [
-              "gcc ${commonGccOptions} -shared -Wall -O3 -o ${libName} ${sourceFiles}"
+              "${cc}/bin/cc ${commonCCOptions} -shared -o ${libName} ${sourceFiles}"
             ];
       in
       pkgs.stdenv.mkDerivation {
         inherit name system;
-        buildInputs = with pkgs; [ gcc clib ] ++ staticLibDeps;
+        buildInputs = with pkgs; [ cc clib ] ++ staticLibDeps;
         NIX_DEBUG = 1;
         src = ./.;
         configurePhase = ''
