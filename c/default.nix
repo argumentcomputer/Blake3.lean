@@ -5,7 +5,7 @@ let
     # Wrap object files in an archive for static linking
     ({ archive ? false
      , libExtension ? if archive then "a" else "so"
-     , libName ? "libblake3.${libExtension}"
+     , libName ? "libleanblake3.${libExtension}"
      , cc ? stdenv.cc
      , ccOptions ? [ ]
      , debug ? false
@@ -16,13 +16,14 @@ let
         sourceFiles = "blake3-shim.c";
         staticLibDeps = [ blake3-c lean ];
         leanPkgs = lean.packages.${system};
-        commonCCOptions = lib.concatStringsSep " " ([ "-Wall" "-O3" "-I${lean-bin-tools-unwrapped}/include" "-Iinclude" (if debug then "-ggdb" else "") ] ++ ccOptions);
+        commonCCOptions = lib.concatStringsSep " " ([ "-Wall" "-O3" "-I${lean-bin-tools-unwrapped}/include" "-I${blake3-c}/c" "-Iinclude" (if debug then "-ggdb" else "") ] ++ ccOptions);
         inherit (leanPkgs) lean-bin-tools-unwrapped;
+        objectFile = "blake3-shim.o";
         buildSteps =
           if archive then
             [
-              "${cc}/bin/cc ${commonCCOptions} -c -o blake3.o ${sourceFiles}"
-              "ar rcs ${libName} blake3.o"
+              "${cc}/bin/cc ${commonCCOptions} -c -o ${objectFile} ${sourceFiles}"
+              "ar rcs ${libName} ${objectFile}"
 
             ] else
             [
