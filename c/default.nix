@@ -16,8 +16,8 @@ let
         sourceFiles = "blake3-shim.c";
         staticLibDeps = [ blake3-c lean ];
         leanPkgs = lean.packages.${system};
-        commonCCOptions = lib.concatStringsSep " " ([ "-Wall" "-O3" "-I${lean-bin-tools-unwrapped}/include" "-I${blake3-c}/c" "-Iinclude" (if debug then "-ggdb" else "") ] ++ ccOptions);
         inherit (leanPkgs) lean-bin-tools-unwrapped;
+        commonCCOptions = lib.concatStringsSep " " ([ "-Wall" "-O3" "-I${lean-bin-tools-unwrapped}/include" "-I${blake3-c}/c" "-Iinclude" (if debug then "-ggdb" else "") ] ++ ccOptions);
         objectFile = "blake3-shim.o";
         buildSteps =
           if archive then
@@ -55,10 +55,10 @@ let
   staticLib = cLib {
     archive = true;
   };
-  dynamicLib = cLib {
+  sharedLib = cLib {
     archive = false;
   };
 in
 staticLib // {
-  inherit cLib dynamicLib staticLib;
+  inherit cLib sharedLib staticLib;
 }

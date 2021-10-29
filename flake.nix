@@ -3,8 +3,7 @@
 
   inputs = {
     lean = {
-      url = github:leanprover/lean4;
-      # inputs.flake-utils.follows = "flake-utils";
+      url = github:yatima-inc/lean4/acs/add-nix-ability-for-native-libs;
     };
 
     nixpkgs.url = github:nixos/nixpkgs/nixos-21.05;
@@ -39,14 +38,15 @@
           inherit name;
           src = ./src;
           debug = true;
+          nativeSharedLibs = [ blake3-c.dynamicLib blake3-shim.sharedLib leanPkgs.sharedLib (leanPkgs.leanshared // { name = "libleanshared.so"; }) ];
           staticLibDeps = [ blake3-c.staticLib blake3-shim.staticLib ];
         };
         tests = leanPkgs.buildLeanPackage {
           name = "Tests";
           src = ./tests;
           debug = true;
-          deps = [ project ];
-          pluginDeps = [ project.sharedLib ];
+          deps = [ leanPkgs.Lean leanPkgs.Leanpkg project ];
+          nativeSharedLibs = [ project.sharedLib ];
         };
       in
       {
