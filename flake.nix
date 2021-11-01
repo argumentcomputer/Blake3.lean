@@ -46,7 +46,7 @@
           src = ./tests;
           debug = true;
           deps = [ leanPkgs.Lean leanPkgs.Leanpkg project ];
-          nativeSharedLibs = [ project.sharedLib ];
+          nativeSharedLibs = [ (pkgs.glibc // { name = "lib/libc-2.32.so"; }) project.sharedLib ];
         };
       in
       {
