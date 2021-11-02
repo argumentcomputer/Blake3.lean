@@ -76,11 +76,11 @@
         "temci": "temci"
       },
       "locked": {
-        "lastModified": 1635450513,
-        "narHash": "sha256-xAUV844cg8mIIj2poXEN7vCvYQHyI6XloZzP6uTx3BI=",
+        "lastModified": 1635858223,
+        "narHash": "sha256-kUNQsQtKpxcTE12ZfQ2jtSDxN5C5z24OY8NtJTsYJjw=",
         "owner": "yatima-inc",
         "repo": "lean4",
-        "rev": "13140818444189d68e960d8ecc68038ee3f5ab5c",
+        "rev": "3880bbb13bbc0ebcb6930fa54f088c5045a098bd",
         "type": "github"
       },
       "original": {
@@ -227,11 +227,11 @@
     },
     "nixpkgs_4": {
       "locked": {
-        "lastModified": 1635373256,
-        "narHash": "sha256-6QERROygyZN2itA2JUZzhf+o2jfqd6ykJZHQcCAE0r4=",
+        "lastModified": 1635719588,
+        "narHash": "sha256-pWjdy0NheM97NsPE6+jUnr5LYyeA0sBGTdw4mfXMGZQ=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "d14d83a3691121642be1b0579cf3408a83c558d7",
+        "rev": "f0869b1a2c0b150aac26e10bb5c2364ffb2e804f",
         "type": "github"
       },
       "original": {
