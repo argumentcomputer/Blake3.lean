@@ -5,6 +5,9 @@
  * Wrap around the blake3_version function and construct a lean string.
  */
 lean_object *lean_blake3_version() {
+#ifdef DEBUG
+  printf("blake3_hasher_version");
+#endif
   const char *v = blake3_version();
   lean_obj_res r = lean_mk_string(v);
   return r;
@@ -15,6 +18,9 @@ lean_object *lean_blake3_version() {
  * address invalid.
  */
 static inline void blake3_hasher_free(blake3_hasher *self) {
+#ifdef DEBUG
+  printf("blake3_hasher_free");
+#endif
   // Mark memory as available
   free(self);
   self = NULL;
@@ -37,6 +43,9 @@ static lean_external_class *get_blake3_hasher_class() {
  * Copy the contents of the hasher to a new memory location.
  */
 static inline lean_obj_res blake3_hasher_copy(lean_object *self) {
+#ifdef DEBUG
+  printf("lean_blake3_hasher_copy");
+#endif
   assert(lean_get_external_class(self) == get_blake3_hasher_class());
   blake3_hasher *a = (blake3_hasher *)lean_get_external_data(self);
   blake3_hasher *copy = malloc(sizeof(blake3_hasher));
@@ -70,6 +79,9 @@ static inline lean_obj_res lean_ensure_exclusive_blake3_hasher(lean_obj_arg a) {
 
 lean_obj_res lean_blake3_hasher_update(lean_obj_arg self, b_lean_obj_arg input,
                                        size_t input_len) {
+#ifdef DEBUG
+  printf("lean_blake3_hasher_update");
+#endif
   lean_object *a = lean_ensure_exclusive_blake3_hasher(self);
   blake3_hasher_update(lean_get_external_data(a), lean_sarray_cptr(input),
                        input_len);
@@ -80,6 +92,9 @@ lean_obj_res lean_blake3_hasher_update(lean_obj_arg self, b_lean_obj_arg input,
  * Finalize the hasher and return the hash given the length.
  */
 lean_obj_res lean_blake3_hasher_finalize(lean_obj_arg self, size_t len) {
+#ifdef DEBUG
+  printf("lean_blake3_hasher_finalize");
+#endif
   lean_object *out = lean_alloc_sarray(1, len, len);
   lean_object *a = lean_ensure_exclusive_blake3_hasher(self);
   blake3_hasher_finalize(lean_get_external_data(a), lean_sarray_cptr(out), len);

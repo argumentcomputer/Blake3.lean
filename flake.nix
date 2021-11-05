@@ -31,22 +31,20 @@
         blake3-c = blake3.packages.${system}.BLAKE3-c;
         pkgs = import nixpkgs { inherit system; };
         name = "Blake3";
+        debug = true;
         blake3-shim = import ./c/default.nix {
-          inherit system pkgs blake3-c lean;
+          inherit system pkgs blake3 lean;
         };
         project = leanPkgs.buildLeanPackage {
-          inherit name;
+          inherit name debug;
           src = ./src;
-          debug = true;
-          nativeSharedLibs = [ blake3-c.dynamicLib blake3-shim.sharedLib leanPkgs.sharedLib (leanPkgs.leanshared // { name = "libleanshared.so"; }) ];
-          staticLibDeps = [ blake3-c.staticLib blake3-shim.staticLib ];
+          nativeSharedLibs = [ (blake3-c.dynamicLib // { linkName = "blake3"; }) blake3-shim.sharedLib ];
         };
         tests = leanPkgs.buildLeanPackage {
+          inherit debug;
           name = "Tests";
           src = ./tests;
-          debug = true;
-          deps = [ leanPkgs.Lean leanPkgs.Leanpkg project ];
-          nativeSharedLibs = [ project.sharedLib ];
+          deps = [ project ];
         };
       in
       {
