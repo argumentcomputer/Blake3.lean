@@ -31,13 +31,19 @@
         blake3-c = blake3.packages.${system}.BLAKE3-c;
         pkgs = import nixpkgs { inherit system; };
         name = "Blake3";
-        debug = true;
+        debug = false;
         blake3-shim = import ./c/default.nix {
           inherit system pkgs blake3 lean;
+        };
+        BinaryTools = leanPkgs.buildLeanPackage {
+          inherit debug;
+          name = "BinaryTools";
+          src = ./src;
         };
         project = leanPkgs.buildLeanPackage {
           inherit name debug;
           src = ./src;
+          deps = [ BinaryTools ];
           nativeSharedLibs = [ (blake3-c.dynamicLib // { linkName = "blake3"; }) blake3-shim.sharedLib ];
         };
         tests = leanPkgs.buildLeanPackage {
