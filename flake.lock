@@ -7,11 +7,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1635113986,
-        "narHash": "sha256-jRNmrjbtpyP8Lknvk/Rt1b6V7VevEKHeHW/7WpeavLo=",
+        "lastModified": 1636556505,
+        "narHash": "sha256-OBklLyAOKvrjAhZPitYw3gRQYSaj6t/V+oLjnjRrlcQ=",
         "owner": "yatima-inc",
         "repo": "BLAKE3",
-        "rev": "8a07e340a94e13f8d1fb981099a010f3ff337d17",
+        "rev": "52599e90d100fabc23bbd8d1299c2453f562b76c",
         "type": "github"
       },
       "original": {
@@ -76,11 +76,11 @@
         "temci": "temci"
       },
       "locked": {
-        "lastModified": 1636121572,
-        "narHash": "sha256-i3KD6037KQtwDWwoJag7ciuiOEkZJtLbQRMX6sa1UZo=",
+        "lastModified": 1636562722,
+        "narHash": "sha256-JkdbXvhTcO5swfwNbu3AzlROpR20GSGw99JR5gKrMO8=",
         "owner": "yatima-inc",
         "repo": "lean4",
-        "rev": "57d5acec89ada9920ca8c849fadb7ab203b2990a",
+        "rev": "1b61d7bb4b9fcb6eb1596bd580641fc52494b107",
         "type": "github"
       },
       "original": {
@@ -227,11 +227,11 @@
     },
     "nixpkgs_4": {
       "locked": {
-        "lastModified": 1636066614,
-        "narHash": "sha256-6XUf07A1IYXmSE4/2qsxLZ4L19C+y9khqxbzkEErJ3Q=",
+        "lastModified": 1636333654,
+        "narHash": "sha256-3wh9PtCzcaJQuZrgZ+ygKfhltkDNNqT6zOzGsRbjZEo=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "96ded94eb0a8ca3781fb52087b40e09425e384cb",
+        "rev": "e74894146a42ba552ebafa19ab2d1df7ccbc1738",
         "type": "github"
       },
       "original": {
