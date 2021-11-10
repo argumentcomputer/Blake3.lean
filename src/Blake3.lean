@@ -5,6 +5,7 @@ import BinaryTools
 
 namespace Blake3
 
+universe u
 /-
 BLAKE3 constant values.
 -/
@@ -84,7 +85,8 @@ constant hasherFinalizeSeek : (hasher : Hasher) → (seek : UInt64) → (length 
 /-
 Hash a ByteArray
 -/
-def hash (input : ByteArray) : Blake3Hash :=
+def hash {I: Type u} [Into ByteArray I] (input : I) : Blake3Hash :=
+  let input : ByteArray := Into.into input
   let hasher := initHasher ()
   let hasher := hasherUpdate hasher input (USize.ofNat input.size)
   let output := hasherFinalize hasher (USize.ofNat BLAKE3_OUT_LEN)
