@@ -20,3 +20,4 @@ settings.json
 CMakeSettings.json
 CppProperties.json
 result
+/build
