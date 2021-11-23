@@ -21,3 +21,4 @@ CMakeSettings.json
 CppProperties.json
 result
 /build
+/lean_packages
