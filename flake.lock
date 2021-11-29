@@ -76,16 +76,15 @@
         "temci": "temci"
       },
       "locked": {
-        "lastModified": 1636562722,
-        "narHash": "sha256-JkdbXvhTcO5swfwNbu3AzlROpR20GSGw99JR5gKrMO8=",
-        "owner": "yatima-inc",
+        "lastModified": 1638118561,
+        "narHash": "sha256-LPBvEwsLA1FuEC3SJnG6+kMbQkqh8/B2YgqLvXho6Rk=",
+        "owner": "leanprover",
         "repo": "lean4",
-        "rev": "1b61d7bb4b9fcb6eb1596bd580641fc52494b107",
+        "rev": "cfe924e53e38e98e0debd248b503a465cbd07bd5",
         "type": "github"
       },
       "original": {
-        "owner": "yatima-inc",
-        "ref": "acs/add-nix-ability-for-native-libs",
+        "owner": "leanprover",
         "repo": "lean4",
         "type": "github"
       }
