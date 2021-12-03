@@ -12,7 +12,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    blake3.url = github:yatima-inc/BLAKE3/acs/add-flake-setup;
+    blake3 = {
+      url = github:yatima-inc/BLAKE3/acs/add-flake-setup;    
+    };
   };
 
   outputs = { self, lean, flake-utils, nixpkgs, blake3 }:
