@@ -13,7 +13,8 @@
     };
 
     blake3 = {
-      url = github:yatima-inc/BLAKE3/acs/add-flake-setup;    
+      url = github:BLAKE3-team/BLAKE3;
+      flake = false;
     };
   };
 
@@ -30,8 +31,7 @@
     flake-utils.lib.eachSystem supportedSystems (system:
       let
         leanPkgs = lean.packages.${system};
-        blake3-c = blake3.packages.${system}.BLAKE3-c;
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = nixpkgs.legacyPackages.${system};
         name = "Blake3";
         debug = false;
         blake3-shim = import ./c/default.nix {
@@ -46,7 +46,7 @@
           inherit name debug;
           src = ./src;
           deps = [ BinaryTools ];
-          nativeSharedLibs = [ (blake3-c.dynamicLib // { linkName = "blake3"; }) blake3-shim.sharedLib ];
+          nativeSharedLibs = [ blake3-shim.sharedLib ];
         };
         tests = leanPkgs.buildLeanPackage {
           inherit debug;
