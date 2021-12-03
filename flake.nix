@@ -54,7 +54,7 @@
           src = ./tests;
           deps = [ project ];
         };
-        joinDepsDerivationns = getSubDrv:
+        joinDepsDerivations = getSubDrv:
           pkgs.lib.concatStringsSep ":" (map (d: "${getSubDrv d}") ([ project tests BinaryTools ] ++ project.allExternalDeps));
       in
       {
@@ -71,8 +71,8 @@
         defaultPackage = project.modRoot;
         devShell = pkgs.mkShell {
           buildInputs = [ leanPkgs.lean ];
-          LEAN_PATH = joinDepsDerivationns (d: d.modRoot);
-          LEAN_SRC_PATH = joinDepsDerivationns (d: d.src);
+          LEAN_PATH = joinDepsDerivations (d: d.modRoot);
+          LEAN_SRC_PATH = joinDepsDerivations (d: d.src);
         };
       });
 }
