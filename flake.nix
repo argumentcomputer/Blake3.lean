@@ -37,15 +37,9 @@
         blake3-shim = import ./c/default.nix {
           inherit system pkgs blake3 lean;
         };
-        BinaryTools = leanPkgs.buildLeanPackage {
-          inherit debug;
-          name = "BinaryTools";
-          src = ./src;
-        };
         project = leanPkgs.buildLeanPackage {
           inherit name debug;
           src = ./src;
-          deps = [ BinaryTools ];
           nativeSharedLibs = [ blake3-shim.sharedLib ];
         };
         tests = leanPkgs.buildLeanPackage {
@@ -55,7 +49,7 @@
           deps = [ project ];
         };
         joinDepsDerivations = getSubDrv:
-          pkgs.lib.concatStringsSep ":" (map (d: "${getSubDrv d}") ([ project tests BinaryTools ] ++ project.allExternalDeps));
+          pkgs.lib.concatStringsSep ":" (map (d: "${getSubDrv d}") ([ project tests ] ++ project.allExternalDeps));
       in
       {
         inherit project tests;

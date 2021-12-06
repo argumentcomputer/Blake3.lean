@@ -1,7 +1,7 @@
 /-
 Bindings to the Blake3 hashing library.
 -/
-import BinaryTools
+import Blake3.BinaryTools
 
 namespace Blake3
 

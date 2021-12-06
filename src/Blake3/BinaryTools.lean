@@ -39,7 +39,7 @@ def String.toByteArray (s : String) : ByteArray :=
     (fun c : Char => c.toNat.toUInt8) s.toList).toByteArray
 
 instance : Into ByteArray String := {
-  into := String.toByteArray
+  into := String.toUTF8
 }
 
 namespace Alphabet

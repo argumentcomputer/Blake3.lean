@@ -1,5 +1,4 @@
 import Blake3
-import BinaryTools
 
 open Blake3
 
