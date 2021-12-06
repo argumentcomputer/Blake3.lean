@@ -60,7 +60,7 @@
           tests = tests.executable;
         };
 
-        checks.tests = tests;
+        checks.tests = tests.executable;
 
         defaultPackage = project.modRoot;
         devShell = pkgs.mkShell {

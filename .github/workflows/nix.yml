@@ -85,10 +85,9 @@ jobs:
         run: |
           # .o files are not a runtime dependency on macOS because of lack of thin archives
           nix build $NIX_BUILD_ARGS . -o push-build
-      # TODO Broken
-      # - name: Test
-      #   run: |
-      #     nix flake check $NIX_BUILD_ARGS . -o push-test
+      - name: Test
+        run: |
+          nix flake check $NIX_BUILD_ARGS . -o push-test
       # - name: Build manual
       #   run: |
       #     nix build $NIX_BUILD_ARGS .#mdbook .#doc-test -o push-doc
