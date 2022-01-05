@@ -3,11 +3,11 @@
     "blake3": {
       "flake": false,
       "locked": {
-        "lastModified": 1638299108,
-        "narHash": "sha256-ALoT7oc+zX/HszC8kR5bPXOaP24AWx3zXwuyL+sQb+k=",
+        "lastModified": 1640889253,
+        "narHash": "sha256-xcvPyCWKWvb3G4PT2YycgsPjo4GcYSXGXsccfLQpX50=",
         "owner": "BLAKE3-team",
         "repo": "BLAKE3",
-        "rev": "da4c792d8094f35c05c41c9aeb5dfe4aa67ca1ac",
+        "rev": "c7b5881928715429857d0b3e1bee7a4315cbf415",
         "type": "github"
       },
       "original": {
@@ -56,11 +56,11 @@
         "temci": "temci"
       },
       "locked": {
-        "lastModified": 1638828982,
-        "narHash": "sha256-pG0fej7hLWWMLyMERADLRlqnTrXZSYCPEFv7H17bZ/U=",
+        "lastModified": 1641410904,
+        "narHash": "sha256-zVWp3+AZ+Nz89ubukbGYnDQo8MSexOmsRdEqdvRosz0=",
         "owner": "leanprover",
         "repo": "lean4",
-        "rev": "c57a664127dc57c9e652e3e854f0a9484aaa6630",
+        "rev": "030e932db8575e533bc18ce2175e2b0e9c38e0d8",
         "type": "github"
       },
       "original": {
@@ -168,11 +168,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1638564543,
-        "narHash": "sha256-slB5V8mWwtpAYquwG/s7vlTROJhObkCPdGrshQlWicM=",
+        "lastModified": 1641229786,
+        "narHash": "sha256-WPPcLNbVu6ryj772GooUpF285LOvRHdOo/UNJgPnFYI=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "b86b6bc5e753919ab4d7c902210234f324d0efa4",
+        "rev": "88579effa7e88c25087faf6de6388d0cd1738dc0",
         "type": "github"
       },
       "original": {

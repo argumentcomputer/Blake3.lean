@@ -69,7 +69,7 @@ end Alphabet
 /-
 Encode a ByteArray as a base64 String
 -/
-def toBase64 {I: Type u} [Into ByteArray I] (input : I) (pad: Bool := true) : String := do
+def toBase64 {I: Type u} [Into ByteArray I] (input : I) (pad: Bool := true) : String := Id.run <| do
   let input : ByteArray := Into.into input
   let x := ByteArray.size input % 3
   let mut bytes := input
