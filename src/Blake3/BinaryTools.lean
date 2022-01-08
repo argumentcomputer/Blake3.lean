@@ -2,6 +2,7 @@
 BinaryTools: Utilities for displaying and manipulating Binary data.
 -/
 
+namespace Blake3
 /-
 Simplification rules for ensuring type safety of Blake3Hash
 -/
