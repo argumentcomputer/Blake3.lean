@@ -7,5 +7,5 @@ This project provides lean bindings to the BLAKE3 hasher and a nix flake to buil
 Run tests with
 
 ```
-nix run .#tests
+nix run .#test
 ```

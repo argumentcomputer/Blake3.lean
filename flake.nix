@@ -3,17 +3,17 @@
 
   inputs = {
     lean = {
-      url = github:leanprover/lean4;
+      url = "github:leanprover/lean4";
     };
 
-    nixpkgs.url = github:nixos/nixpkgs/nixos-21.05;
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-21.11";
     flake-utils = {
-      url = github:numtide/flake-utils;
+      url = "github:numtide/flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     blake3 = {
-      url = github:BLAKE3-team/BLAKE3;
+      url = "github:BLAKE3-team/BLAKE3";
       flake = false;
     };
   };
@@ -42,29 +42,29 @@
           src = ./src;
           nativeSharedLibs = [ blake3-shim.sharedLib ];
         };
-        tests = leanPkgs.buildLeanPackage {
+        test = leanPkgs.buildLeanPackage {
           inherit debug;
           name = "Tests";
-          src = ./tests;
+          src = ./test;
           deps = [ project ];
         };
         joinDepsDerivations = getSubDrv:
-          pkgs.lib.concatStringsSep ":" (map (d: "${getSubDrv d}") ([ project tests ] ++ project.allExternalDeps));
+          pkgs.lib.concatStringsSep ":" (map (d: "${getSubDrv d}") project.allExternalDeps);
       in
       {
-        inherit project tests;
+        inherit project;
         packages = {
           inherit blake3-shim;
-          inherit (project) modRoot sharedLib staticLib;
+          inherit (project) modRoot sharedLib staticLib lean-package;
           inherit (leanPkgs) lean;
-          tests = tests.executable;
+          test = test.executable;
         };
 
-        checks.tests = tests.executable;
+        checks.test = test.executable;
 
-        defaultPackage = project.modRoot;
+        defaultPackage = test.executable;
         devShell = pkgs.mkShell {
-          buildInputs = [ leanPkgs.lean ];
+          buildInputs = [ leanPkgs.lean-dev ];
           LEAN_PATH = joinDepsDerivations (d: d.modRoot);
           LEAN_SRC_PATH = joinDepsDerivations (d: d.src);
         };
