@@ -1,4 +1,2 @@
-/build
-/lake-packages
-Cargo.lock
-/target
+/.lake
+/blake3
