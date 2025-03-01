@@ -8,11 +8,19 @@ lean_lib Blake3
 
 lean_exe Blake3Test
 
+abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
+abbrev blake3RepoRev := "1.6.1"
+
 target cloneBlake3 pkg : GitRepo := do
   let repoDir : GitRepo := pkg.dir / "blake3"
+
+  -- Clone if it hasn't already been cloned
   let alreadyCloned ← repoDir.dir.pathExists
   if !alreadyCloned then
-    GitRepo.clone "https://github.com/BLAKE3-team/BLAKE3" repoDir
+    GitRepo.clone blake3RepoURL repoDir
+
+  -- Checkout to a fixed rev
+  GitRepo.execGit #["checkout", blake3RepoRev] repoDir
   return pure repoDir
 
 def blake3CDir (blake3Repo : GitRepo) : System.FilePath :=
@@ -42,9 +50,14 @@ target ffi.o pkg : System.FilePath := do
   buildO oFile srcJob weakArgs #[] compiler getLeanTrace
 
 extern_lib ffi pkg := do
-  let blake3O ← buildBlake3Obj pkg "blake3" false
-  let blake3DispatchO ← buildBlake3Obj pkg "blake3_dispatch" true
-  let blake3PortableO ← buildBlake3Obj pkg "blake3_portable" true
-  let ffiO ← ffi.o.fetch
+  -- Gather all `.o` file build jobs
+  let mut oFileJobs := #[]
+  oFileJobs := oFileJobs.push $ ← buildBlake3Obj pkg "blake3" false
+  oFileJobs := oFileJobs.push $ ← buildBlake3Obj pkg "blake3_dispatch" true
+  oFileJobs := oFileJobs.push $ ← buildBlake3Obj pkg "blake3_portable" true
+  if (← IO.getEnv "BLAKE3_USE_NEON") == some "1" then
+    oFileJobs := oFileJobs.push $ ← buildBlake3Obj pkg "blake3_neon" true
+  oFileJobs := oFileJobs.push $ ← ffi.o.fetch
+
   let name := nameToStaticLib "ffi"
-  buildStaticLib (pkg.nativeLibDir / name) #[blake3O, blake3DispatchO, blake3PortableO, ffiO]
+  buildStaticLib (pkg.nativeLibDir / name) oFileJobs
