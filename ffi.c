@@ -15,7 +15,6 @@ extern lean_obj_res lean_blake3_version() {
  */
 static void blake3_hasher_finalizer(void *hasher) {
     free(hasher);
-    hasher = NULL;
 }
 
 static void blake3_hasher_foreach(void *mod, b_lean_obj_arg fn) {}
