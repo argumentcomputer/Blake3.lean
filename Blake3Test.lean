@@ -11,5 +11,5 @@ abbrev output : ByteArray := ⟨#[
 def main : IO UInt32 := do
   println! s!"BLAKE3 version: {Blake3.version}"
   if (Blake3.hash input).val.data != output.data
-    then IO.println "BLAKE3 test failed"; return 1
-    else IO.println "BLAKE3 test succeeded"; return 0
+    then IO.eprintln "BLAKE3 test failed";    return 1
+    else IO.println  "BLAKE3 test succeeded"; return 0
