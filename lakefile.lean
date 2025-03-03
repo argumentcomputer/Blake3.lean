@@ -9,7 +9,7 @@ lean_lib Blake3
 lean_exe Blake3Test
 
 abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
-abbrev blake3RepoRev := "1.6.1"
+abbrev blake3RepoTag := "1.6.1"
 
 target cloneBlake3 pkg : GitRepo := do
   let repoDir : GitRepo := pkg.dir / "blake3"
@@ -19,8 +19,9 @@ target cloneBlake3 pkg : GitRepo := do
   if !alreadyCloned then
     GitRepo.clone blake3RepoURL repoDir
 
-  -- Checkout to a fixed rev
-  GitRepo.execGit #["checkout", blake3RepoRev] repoDir
+  -- Checkout to a fixed tag
+  GitRepo.execGit #["fetch", "--tags"] repoDir
+  GitRepo.execGit #["checkout", blake3RepoTag] repoDir
   return pure repoDir
 
 def blake3CDir (blake3Repo : GitRepo) : System.FilePath :=
