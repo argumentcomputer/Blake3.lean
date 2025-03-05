@@ -34,6 +34,10 @@ namespace Hasher
 @[extern "lean_blake3_init"]
 opaque init : Unit → Hasher
 
+/-- Initialize a hasher using pseudo-random key -/
+@[extern "lean_blake3_init_keyed"]
+opaque init_keyed (key : @& ByteArray) : Hasher
+
 /-- Put more data into the hasher. This can be called several times. -/
 @[extern "lean_blake3_hasher_update"]
 opaque update (hasher : Hasher) (input : @& ByteArray) : Hasher
@@ -47,6 +51,16 @@ end Hasher
 /-- Hash a ByteArray -/
 def hash (input : ByteArray) : Blake3Hash :=
   let hasher := Hasher.init ()
+  let hasher := hasher.update input
+  let output := hasher.finalize BLAKE3_OUT_LEN.toUSize
+  if h : output.size = BLAKE3_OUT_LEN then
+    ⟨output, h⟩
+  else
+    panic! "Incorrect output size"
+
+/-- Hash a ByteArray using keyed initializer -/
+def hash_keyed (input key : ByteArray) : Blake3Hash :=
+  let hasher := Hasher.init_keyed key
   let hasher := hasher.update input
   let output := hasher.finalize BLAKE3_OUT_LEN.toUSize
   if h : output.size = BLAKE3_OUT_LEN then
