@@ -2,11 +2,19 @@
 
 namespace Blake3
 
-/-- BLAKE3 output length -/
+/-- BLAKE3 constants -/
 abbrev BLAKE3_OUT_LEN : Nat := 32
+abbrev BLAKE3_KEY_LEN : Nat := 32
 
-/-- A dependent ByteArray which guarantees the correct byte length. -/
+/-- A wrapper around `ByteArray` whose size is `BLAKE3_OUT_LEN` -/
 def Blake3Hash : Type := { r : ByteArray // r.size = BLAKE3_OUT_LEN }
+
+/-- A wrapper around `ByteArray` whose size is `BLAKE3_KEY_LEN` -/
+def Blake3Key : Type := { r : ByteArray // r.size = BLAKE3_KEY_LEN }
+
+def Blake3Key.ofBytes (bytes : ByteArray)
+    (h : bytes.size = BLAKE3_KEY_LEN := by rw [ByteArray.size]; rfl) : Blake3Key :=
+  ⟨bytes, h⟩
 
 instance : Inhabited Blake3Hash where
   default := ⟨⟨#[
@@ -36,10 +44,10 @@ opaque init : Unit → Hasher
 
 /-- Initialize a hasher using pseudo-random key -/
 @[extern "lean_blake3_init_keyed"]
-opaque init_keyed (key : @& ByteArray) : Hasher
+opaque initKeyed (key : @& Blake3Key) : Hasher
 
 @[extern "lean_blake3_init_derive_key"]
-opaque init_derive_key (context : @& ByteArray) : Hasher
+opaque initDeriveKey (context : @& ByteArray) : Hasher
 
 /-- Put more data into the hasher. This can be called several times. -/
 @[extern "lean_blake3_hasher_update"]
@@ -62,8 +70,8 @@ def hash (input : ByteArray) : Blake3Hash :=
     panic! "Incorrect output size"
 
 /-- Hash a ByteArray using keyed initializer -/
-def hash_keyed (input key : ByteArray) : Blake3Hash :=
-  let hasher := Hasher.init_keyed key
+def hashKeyed (input : @& ByteArray) (key : @& Blake3Key) : Blake3Hash :=
+  let hasher := Hasher.initKeyed key
   let hasher := hasher.update input
   let output := hasher.finalize BLAKE3_OUT_LEN.toUSize
   if h : output.size = BLAKE3_OUT_LEN then
@@ -72,8 +80,8 @@ def hash_keyed (input key : ByteArray) : Blake3Hash :=
     panic! "Incorrect output size"
 
 /-- Hash a ByteArray using initializer parameterized by some context -/
-def hash_derive_key (input context : ByteArray) : Blake3Hash :=
-  let hasher := Hasher.init_derive_key context
+def hashDeriveKey (input context : @& ByteArray) : Blake3Hash :=
+  let hasher := Hasher.initDeriveKey context
   let hasher := hasher.update input
   let output := hasher.finalize BLAKE3_OUT_LEN.toUSize
   if h : output.size = BLAKE3_OUT_LEN then
