@@ -53,6 +53,24 @@ extern lean_obj_res lean_blake3_init() {
 }
 
 /**
+ * Initialize a hasher using pseudo-random key
+ */
+extern lean_obj_res lean_blake3_init_keyed(b_lean_obj_arg key) {
+    blake3_hasher *a = malloc(sizeof(blake3_hasher));
+    blake3_hasher_init_keyed(a, lean_sarray_cptr(key));
+    return lean_alloc_external(get_blake3_hasher_class(), a);
+}
+
+/**
+ * Initialize a hasher using some arbitrary context
+ */
+ extern lean_obj_res lean_blake3_init_derive_key(b_lean_obj_arg context) {
+     blake3_hasher *a = malloc(sizeof(blake3_hasher));
+     blake3_hasher_init_derive_key_raw(a, lean_sarray_cptr(context), lean_sarray_size(context));
+     return lean_alloc_external(get_blake3_hasher_class(), a);
+ }
+
+/**
  * Ensure the hasher is exclusive.
  */
 static inline lean_obj_res lean_ensure_exclusive_blake3_hasher(lean_obj_arg a) {
