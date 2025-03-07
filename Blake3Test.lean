@@ -9,7 +9,7 @@ abbrev expected_output_regular_hashing : ByteArray := ⟨#[
 ]⟩
 
 -- Good pseudo-random key
-abbrev key : Blake3.Blake3Key := .ofBytes ⟨#[
+abbrev key : ByteArray := ⟨#[
      3, 123,  16, 175,  8, 196, 101, 134,
    144, 184, 221,  34, 25, 106, 122, 200,
    213,  14, 159, 189, 82, 166,  91, 107,
