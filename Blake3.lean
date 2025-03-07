@@ -44,7 +44,7 @@ opaque init : Unit → Hasher
 
 /-- Initialize a hasher using pseudo-random key -/
 @[extern "lean_blake3_init_keyed"]
-opaque initKeyed (key : @& ByteArray) : Hasher
+opaque initKeyed (key : @& Blake3Key) : Hasher
 
 @[extern "lean_blake3_init_derive_key"]
 opaque initDeriveKey (context : @& ByteArray) : Hasher
@@ -70,7 +70,7 @@ def hash (input : ByteArray) : Blake3Hash :=
     panic! "Incorrect output size"
 
 /-- Hash a ByteArray using keyed initializer -/
-def hashKeyed (input : @& ByteArray) (key : @& ByteArray) : Blake3Hash :=
+def hashKeyed (input : @& ByteArray) (key : @& Blake3Key) : Blake3Hash :=
   let hasher := Hasher.initKeyed key
   let hasher := hasher.update input
   let output := hasher.finalize BLAKE3_OUT_LEN.toUSize
@@ -88,6 +88,8 @@ def hashDeriveKey (input context : @& ByteArray) : Blake3Hash :=
     ⟨output, h⟩
   else
     panic! "Incorrect output size"
+
+--theorem bla : ByteArray.extract hash 0 BLAKE3_KEY_LEN = BLAKE3_KEY_LEN := sorry
 
 namespace StatefulHashObject
   -- TODO: Can we avoid gaving explicit 'hash' field that includes key in the beginning
@@ -111,17 +113,25 @@ namespace StatefulHashObject
     sponge with hasher := sponge.hasher.update input
   }
 
-  def Sponge.squeeze (sponge: Sponge) (length: Nat) : Sponge := {
-    hasher := sponge.hasher
-    hash := sponge.hasher.finalize (USize.ofNat (length + 2 * BLAKE3_KEY_LEN))
-  }
+  def extractOutput (hash: ByteArray) : ByteArray := ByteArray.extract hash (2 * BLAKE3_KEY_LEN) (hash.size + 2 * BLAKE3_KEY_LEN)
+  def extractKey (hash: ByteArray) : Blake3Key := Blake3Key.ofBytes (ByteArray.extract hash 0 BLAKE3_KEY_LEN) sorry
 
-  def extract_output (sponge: Sponge) : ByteArray := ByteArray.extract sponge.hash (2 * BLAKE3_KEY_LEN) (sponge.hash.size + 2 * BLAKE3_KEY_LEN)
-  def extract_key (hash: ByteArray) : ByteArray := ByteArray.extract hash 0 BLAKE3_KEY_LEN
+  -- returns tuple
+  def Sponge.squeeze (sponge: Sponge) (length: Nat) : Sponge × ByteArray :=
+  let tmp := sponge.hasher.finalize (USize.ofNat (length + 2 * BLAKE3_KEY_LEN))
+  let newSponge := {
+    hasher :=  Hasher.initKeyed (extractKey tmp)
+    hash := extractOutput tmp
+  }
+  (newSponge, newSponge.hash)
+
+
+  --def extract_output (sponge: Sponge) : ByteArray := ByteArray.extract sponge.hash (2 * BLAKE3_KEY_LEN) (sponge.hash.size + 2 * BLAKE3_KEY_LEN)
+  --def extract_key (hash: ByteArray) : ByteArray := ByteArray.extract hash 0 BLAKE3_KEY_LEN
 
   -- This has to be "periodically" invoked manually for security reasons
-  def Sponge.ratchet (extract_key : ByteArray → ByteArray) (sponge: Sponge): Sponge := {
-    hasher := Hasher.initKeyed (extract_key sponge.hash)
+  def Sponge.ratchet (sponge: Sponge): Sponge := {
+    hasher := Hasher.initKeyed (extractKey sponge.hash)
     hash := ⟨#[]⟩
   }
 
