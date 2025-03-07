@@ -89,7 +89,7 @@ def hashDeriveKey (input context : @& ByteArray) : Blake3Hash :=
   else
     panic! "Incorrect output size"
 
---theorem bla : ByteArray.extract hash 0 BLAKE3_KEY_LEN = BLAKE3_KEY_LEN := sorry
+theorem size_of_extract : (ByteArray.extract x b e).size = e - b := sorry
 
 namespace StatefulHashObject
   -- TODO: Can we avoid gaving explicit 'hash' field that includes key in the beginning
@@ -114,7 +114,7 @@ namespace StatefulHashObject
   }
 
   def extractOutput (hash: ByteArray) : ByteArray := ByteArray.extract hash (2 * BLAKE3_KEY_LEN) (hash.size + 2 * BLAKE3_KEY_LEN)
-  def extractKey (hash: ByteArray) : Blake3Key := Blake3Key.ofBytes (ByteArray.extract hash 0 BLAKE3_KEY_LEN) sorry
+  def extractKey (hash: ByteArray) : Blake3Key := Blake3Key.ofBytes (ByteArray.extract hash 0 BLAKE3_KEY_LEN) size_of_extract
 
   -- returns tuple
   def Sponge.squeeze (sponge: Sponge) (length: Nat) : Sponge × ByteArray :=
