@@ -1,5 +1,10 @@
 /-! Bindings to the BLAKE3 hashing library. -/
 
+theorem ByteArray.size_of_extract {hash : ByteArray} (hbe : b ≤ e) (h : e ≤ hash.data.size) :
+    (hash.extract b e).size = e - b := by
+  simp [ByteArray.size, ByteArray.extract, ByteArray.copySlice, ByteArray.empty, ByteArray.mkEmpty]
+  rw [Nat.add_comm, Nat.sub_add_cancel hbe, Nat.min_eq_left h]
+
 namespace Blake3
 
 /-- BLAKE3 constants -/
@@ -53,9 +58,26 @@ opaque initDeriveKey (context : @& ByteArray) : Hasher
 @[extern "lean_blake3_hasher_update"]
 opaque update (hasher : Hasher) (input : @& ByteArray) : Hasher
 
+instance {length : USize} : Inhabited { r : ByteArray // r.size = length.toNat } where
+  default := ⟨
+    ⟨⟨List.replicate length.toNat 0⟩⟩,
+    by simp only [ByteArray.size, List.toArray_replicate, Array.size_mkArray]
+  ⟩
+
 /-- Finalize the hasher and write the output to an array of a given length. -/
 @[extern "lean_blake3_hasher_finalize"]
-opaque finalize : (hasher : Hasher) → (length : USize) → ByteArray
+opaque finalize : (hasher : Hasher) → (length : USize) →
+  {r : ByteArray // r.size = length.toNat}
+
+def finalizeWithLength (hasher : Hasher) (length : Nat)
+    (h : length % 2 ^ System.Platform.numBits = length := by native_decide) :
+    { r : ByteArray // r.size = length } :=
+  let ⟨hash, h'⟩ := hasher.finalize length.toUSize
+  have hash_size_eq_len : hash.size = length := by
+    cases System.Platform.numBits_eq with
+    | inl h32 => rw [h32] at h; simp [h', h32]; exact h
+    | inr h64 => rw [h64] at h; simp [h', h64]; exact h
+  ⟨hash, hash_size_eq_len⟩
 
 end Hasher
 
@@ -63,78 +85,72 @@ end Hasher
 def hash (input : ByteArray) : Blake3Hash :=
   let hasher := Hasher.init ()
   let hasher := hasher.update input
-  let output := hasher.finalize BLAKE3_OUT_LEN.toUSize
-  if h : output.size = BLAKE3_OUT_LEN then
-    ⟨output, h⟩
-  else
-    panic! "Incorrect output size"
+  hasher.finalizeWithLength BLAKE3_OUT_LEN
 
 /-- Hash a ByteArray using keyed initializer -/
 def hashKeyed (input : @& ByteArray) (key : @& Blake3Key) : Blake3Hash :=
   let hasher := Hasher.initKeyed key
   let hasher := hasher.update input
-  let output := hasher.finalize BLAKE3_OUT_LEN.toUSize
-  if h : output.size = BLAKE3_OUT_LEN then
-    ⟨output, h⟩
-  else
-    panic! "Incorrect output size"
+  hasher.finalizeWithLength BLAKE3_OUT_LEN
 
 /-- Hash a ByteArray using initializer parameterized by some context -/
 def hashDeriveKey (input context : @& ByteArray) : Blake3Hash :=
   let hasher := Hasher.initDeriveKey context
   let hasher := hasher.update input
-  let output := hasher.finalize BLAKE3_OUT_LEN.toUSize
-  if h : output.size = BLAKE3_OUT_LEN then
-    ⟨output, h⟩
-  else
-    panic! "Incorrect output size"
+  hasher.finalizeWithLength BLAKE3_OUT_LEN
 
-theorem size_of_extract : (ByteArray.extract x b e).size = e - b := sorry
+structure Sponge where
+  hasher : Hasher
+  counter : Nat
 
-namespace StatefulHashObject
-  -- TODO: Can we avoid gaving explicit 'hash' field that includes key in the beginning
-  structure Sponge where
-    hasher: Hasher
-    hash : ByteArray
+namespace Sponge
 
-  -- TODO: We have to enforce label to contain: 1) software identifier, 2) timestamp, 3) intended use-case 4) version
-  -- This probably can be implemented using some RegExp
-  -- Good label example: 'ix 2025-01-01 16:18:03 content-addressing v1'
-  def checkLabel (label : String) : String := label
+abbrev ABSORB_MAX_BYTES := UInt32.size - 1
+abbrev DEFAULT_REKEYING_STAGE := UInt16.size - 1
 
-  def Sponge.new (checkLabel: String → String) (label : String) : Sponge := {
-    hasher := Hasher.initDeriveKey (String.toUTF8 (checkLabel label))
-    hash := ⟨#[]⟩
-  }
+def init (label : String) (_h : ¬label.isEmpty := by decide) : Sponge :=
+  ⟨Hasher.initDeriveKey label.toUTF8, 0⟩
 
-  -- TODO: Ideally we should have automatic re-keying of the hasher, based on some counter
-  -- (like in Rust reference: https://github.com/storojs72/BLAKE3/blob/sho/reference_impl/reference_impl.rs#L467)
-  def Sponge.absorb (sponge: Sponge) (input: ByteArray) : Sponge := {
-    sponge with hasher := sponge.hasher.update input
-  }
+def ratchet (sponge : Sponge) : Sponge :=
+  let key := sponge.hasher.finalizeWithLength BLAKE3_KEY_LEN
+  { sponge with hasher := Hasher.initKeyed key }
 
-  def extractOutput (hash: ByteArray) : ByteArray := ByteArray.extract hash (2 * BLAKE3_KEY_LEN) (hash.size + 2 * BLAKE3_KEY_LEN)
-  def extractKey (hash: ByteArray) : Blake3Key := Blake3Key.ofBytes (ByteArray.extract hash 0 BLAKE3_KEY_LEN) size_of_extract
+def absorb (sponge : Sponge) (bytes : ByteArray)
+    (_h : bytes.size < ABSORB_MAX_BYTES := by norm_cast) : Sponge :=
+  let highCounter := sponge.counter >= DEFAULT_REKEYING_STAGE
+  let sponge := if highCounter then sponge.ratchet else sponge
+  -- Is `ratchet` supposed to reset `counter` to 0? Or should it be reset
+  -- everytime `highCounter` is `true`?
+  ⟨sponge.hasher.update bytes, sponge.counter + 1⟩
 
-  -- returns tuple
-  def Sponge.squeeze (sponge: Sponge) (length: Nat) : Sponge × ByteArray :=
-  let tmp := sponge.hasher.finalize (USize.ofNat (length + 2 * BLAKE3_KEY_LEN))
-  let newSponge := {
-    hasher :=  Hasher.initKeyed (extractKey tmp)
-    hash := extractOutput tmp
-  }
-  (newSponge, newSponge.hash)
+def squeeze (sponge : Sponge) (length : USize)
+    (h_len_bound : 2 * BLAKE3_OUT_LEN + length.toNat < 2 ^ System.Platform.numBits :=
+      by native_decide) :
+    { r : ByteArray // r.size = length.toNat } :=
+  let ⟨tmp, h⟩ := sponge.hasher.finalize (2 * BLAKE3_OUT_LEN.toUSize + length)
+  let b := (2 * BLAKE3_OUT_LEN)
+  let e := (2 * BLAKE3_OUT_LEN + length.toNat)
+  let y := tmp.extract b e
+  have sub_e_b_eq_length : e - b = length.toNat := by
+    simp only [b, e]
+    rw [Nat.add_comm _ length.toNat, Nat.add_sub_cancel]
+  have le_b_e : b ≤ e := by simp only [Nat.le_add_right, e, b]
+  have h_e_bound : e ≤ tmp.size := by
+    simp [e, h]
+    cases System.Platform.numBits_eq with
+    | inl h32 =>
+      have hbound : (2 * BLAKE3_OUT_LEN) + length.toNat < 2 ^ 32 := by
+        rwa [h32, Nat.pow_succ] at h_len_bound
+      rw [h32, BLAKE3_OUT_LEN]
+      simp only [Nat.mod_eq_of_lt hbound, Nat.le_refl]
+    | inr h64 =>
+      have hbound : (2 * BLAKE3_OUT_LEN) + length.toNat < 2 ^ 64 := by
+        rwa [h64, Nat.pow_succ] at h_len_bound
+      rw [h64, BLAKE3_OUT_LEN]
+      simp only [Nat.mod_eq_of_lt hbound, Nat.le_refl]
+  have size_of_extract := ByteArray.size_of_extract le_b_e h_e_bound
+  ⟨y, by simp only [y, size_of_extract, sub_e_b_eq_length]⟩
 
-
-  --def extract_output (sponge: Sponge) : ByteArray := ByteArray.extract sponge.hash (2 * BLAKE3_KEY_LEN) (sponge.hash.size + 2 * BLAKE3_KEY_LEN)
-  --def extract_key (hash: ByteArray) : ByteArray := ByteArray.extract hash 0 BLAKE3_KEY_LEN
-
-  -- This has to be "periodically" invoked manually for security reasons
-  def Sponge.ratchet (sponge: Sponge): Sponge := {
-    hasher := Hasher.initKeyed (extractKey sponge.hash)
-    hash := ⟨#[]⟩
-  }
-
-end StatefulHashObject
+end Sponge
 
 end Blake3
