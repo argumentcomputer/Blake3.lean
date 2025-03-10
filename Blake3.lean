@@ -113,14 +113,12 @@ def init (label : String) (_h : ¬label.isEmpty := by decide) : Sponge :=
 
 def ratchet (sponge : Sponge) : Sponge :=
   let key := sponge.hasher.finalizeWithLength BLAKE3_KEY_LEN
-  { sponge with hasher := Hasher.initKeyed key }
+  { sponge with hasher := Hasher.initKeyed key, counter := 0 }
 
 def absorb (sponge : Sponge) (bytes : ByteArray)
     (_h : bytes.size < ABSORB_MAX_BYTES := by norm_cast) : Sponge :=
   let highCounter := sponge.counter >= DEFAULT_REKEYING_STAGE
   let sponge := if highCounter then sponge.ratchet else sponge
-  -- Is `ratchet` supposed to reset `counter` to 0? Or should it be reset
-  -- everytime `highCounter` is `true`?
   ⟨sponge.hasher.update bytes, sponge.counter + 1⟩
 
 def squeeze (sponge : Sponge) (length : USize)
