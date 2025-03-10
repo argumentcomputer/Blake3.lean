@@ -9,7 +9,6 @@ lean_lib Blake3
 
 @[test_driver]
 lean_exe Blake3Test
-lean_exe DebugTest
 
 abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
 abbrev blake3RepoTag := "1.6.1"
