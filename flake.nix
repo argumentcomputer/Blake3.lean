@@ -29,6 +29,7 @@
         "x86_64-linux"
       ];
 
+      # Flake output for use downstream
       flake = {
         lib = import ./blake3.nix;
         inputs.blake3 = blake3;
@@ -38,11 +39,9 @@
         system,
         pkgs,
         ...
-      }: 
-      let
-        lib = (import ./blake3.nix { inherit pkgs lean4-nix blake3; }).lib;
-      in
-      {
+      }: let
+        lib = (import ./blake3.nix {inherit pkgs lean4-nix blake3;}).lib;
+      in {
         _module.args.pkgs = import nixpkgs {
           inherit system;
           overlays = [(lean4-nix.readToolchainFile ./lean-toolchain)];
@@ -53,8 +52,10 @@
         };
 
         devShells.default = pkgs.mkShell {
-          packages = with pkgs.lean; [lean lean-all pkgs.gcc pkgs.clang ];
+          packages = with pkgs.lean; [lean lean-all pkgs.gcc pkgs.clang];
         };
+
+        formatter = pkgs.alejandra;
       };
     };
 }
