@@ -5,7 +5,8 @@ open Lake DSL
 package Blake3
 
 @[default_target]
-lean_lib Blake3
+lean_lib Blake3 where
+  precompileModules := true
 
 @[test_driver]
 lean_exe Blake3Test
