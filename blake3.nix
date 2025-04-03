@@ -21,6 +21,8 @@
       "gcc -O3 -Wall -c ffi.c -o ffi.o -I ${pkgs.lean4}/include -I ${blake3}/c"
       "ar rcs libblake3.a ${(builtins.concatStringsSep " " (builtins.map (str: "${str}.o") blake3Files))} ffi.o"
     ];
+  # The `libblake3.a` static library is exposed as the `staticLib` package, as it must be explicitly linked against
+  # in downstream lean4-nix packages.
   blake3-c = pkgs.stdenv.mkDerivation {
     name = "blake3-c";
     src = ./.;
@@ -32,20 +34,13 @@
       cp ${blake3}/c/blake3.h $out/include/
     '';
   };
+  # The Blake3 library is only used locally for development and to build the test package
+  # Downstream users should import Blake3.lean in the lakefile and fetch it via `mkPackage`
   blake3-lib = pkgs.lean.buildLeanPackage {
     name = "blake3-lib";
     src = ./.;
     roots = ["Blake3"];
-    linkFlags = ["-L${blake3-c}/lib" "-lblake3"];
-    groupStaticLibs = true;
-  };
-
-  blake3-test = pkgs.lean.buildLeanPackage {
-    name = "blake3-test";
-    src = ./.;
-    roots = ["Blake3Test"];
-    deps = [blake3-lib];
-    linkFlags = ["-L${blake3-c}/lib" "-lblake3"];
+    staticLibDeps = [ "${blake3-c}/lib" ];
     groupStaticLibs = true;
   };
 
@@ -53,7 +48,6 @@
     inherit
       blake3-c
       blake3-lib
-      blake3-test
       ;
   };
 in {

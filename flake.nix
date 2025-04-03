@@ -29,12 +29,6 @@
         "x86_64-linux"
       ];
 
-      # Flake output for use downstream
-      flake = {
-        lib = import ./blake3.nix;
-        inputs.blake3 = blake3;
-      };
-
       perSystem = {
         system,
         pkgs,
@@ -48,9 +42,17 @@
         };
 
         packages = {
-          test = lib.blake3-test.executable;
+          default = ((lean4-nix.lake {inherit pkgs;}).mkPackage {
+            src = ./.;
+            roots = ["Blake3Test"];
+            deps = [lib.blake3-lib];
+            staticLibDeps = [ "${lib.blake3-c}/lib" ];
+          })
+          .executable;
+          # Downstream lean4-nix packages must also link to the static lib using the `staticLibDeps` attribute.
+          # See https://github.com/argumentcomputer/lean4-nix/blob/dev/templates/dependency/flake.nix for an example
+          staticLib = lib.blake3-c;
         };
-
         devShells.default = pkgs.mkShell {
           packages = with pkgs.lean; [lean lean-all pkgs.gcc pkgs.clang];
         };
