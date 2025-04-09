@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     blake3 = {
-      url = "github:BLAKE3-team/BLAKE3";
+      url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.6.1";
       flake = false;
     };
   };
