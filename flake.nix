@@ -5,11 +5,11 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     lean4-nix = {
-      url = "github:argumentcomputer/lean4-nix";
+      url = "github:argumentcomputer/lean4-nix?ref=lean-4.18.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     blake3 = {
-      url = "github:BLAKE3-team/BLAKE3";
+      url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.6.1";
       flake = false;
     };
   };
