@@ -45,7 +45,7 @@ def buildBlake3Obj (pkg : Package) (fileName : String) := do
   let cDir := blake3CDir blake3Repo
   let srcJob ← inputTextFile $ cDir / fileName |>.addExtension "c"
   let oFile := pkg.buildDir / fileName |>.addExtension "o"
-  let includeArgs := #["-I", cDir.toString]
+  let includeArgs := #["-fPIC", "-I", cDir.toString]
   let weakArgs := includeArgs ++ blake3Flags
   buildO oFile srcJob weakArgs #[] compiler getLeanTrace
 
@@ -55,7 +55,7 @@ target ffi.o pkg : System.FilePath := do
   let srcJob ← inputTextFile $ pkg.dir / "ffi.c"
   let leanIncludeDir ← getLeanIncludeDir
   let cDir := blake3CDir blake3Repo
-  let weakArgs := #["-I", leanIncludeDir.toString, "-I", cDir.toString]
+  let weakArgs := #["-fPIC", "-I", leanIncludeDir.toString, "-I", cDir.toString]
   buildO oFile srcJob weakArgs #[] compiler getLeanTrace
 
 extern_lib ffi pkg := do
