@@ -30,9 +30,5 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: cachix/cachix-action@v16
-        with:
-          name: argumentcomputer
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - run: nix build
-      - run: nix run
+      - run: nix build --accept-flake-config
+      - run: nix run --accept-flake-config

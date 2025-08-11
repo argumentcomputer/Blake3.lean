@@ -12,7 +12,7 @@ lean_lib Blake3 where
 lean_exe Blake3Test
 
 abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
-abbrev blake3RepoTag := "1.6.1"
+abbrev blake3RepoTag := "1.8.2"
 
 target cloneBlake3 pkg : GitRepo := do
   let repoDir : GitRepo := pkg.dir / "blake3"
@@ -67,4 +67,4 @@ extern_lib ffi pkg := do
   let oFileJobs := #[blake3O, blake3DispatchO, blake3PortableO, ffiO]
 
   let name := nameToStaticLib "ffi"
-  buildStaticLib (pkg.nativeLibDir / name) oFileJobs
+  buildStaticLib (pkg.staticLibDir / name) oFileJobs
