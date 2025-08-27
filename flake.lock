@@ -59,11 +59,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1754679239,
-        "narHash": "sha256-b/sd16BbXD2O/llObC4EaT4iBFvtLuqOv48XwOmfAtU=",
+        "lastModified": 1755389677,
+        "narHash": "sha256-q79j0+9Vr+QlRmJJijoXmEiMy2hl2lOXsLbjkGeAGnU=",
         "owner": "lenianiva",
         "repo": "lean4-nix",
-        "rev": "3fda6e88605a229cc9e777e10bb7ac35fc2ed8db",
+        "rev": "f6b97c79060dcbc7db0c2c9cde5061186c77f4af",
         "type": "github"
       },
       "original": {
@@ -115,28 +115,15 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/fb192fec7cc7a4c26d51779e9bab07ce6fa5597a.tar.gz"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1754725699,
-        "narHash": "sha256-iAcj9T/Y+3DBy2J0N+yF9XQQQ8IEb5swLFzs23CdP88=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "85dbfc7aaf52ecb755f87e577ddbe6dbbdbc1054",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "blake3": "blake3",
         "flake-parts": "flake-parts",
         "lean4-nix": "lean4-nix",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": [
+          "lean4-nix",
+          "nixpkgs"
+        ]
       }
     }
   },
