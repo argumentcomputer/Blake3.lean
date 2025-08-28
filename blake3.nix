@@ -18,7 +18,7 @@
   buildSteps =
     builtins.map (file: "gcc -O3 -Wall -c ${blake3}/c/${file}.c -o ${file}.o ${blake3Flags}") blake3Files
     ++ [
-      "gcc -O3 -Wall -c ffi.c -o ffi.o -I ${pkgs.lean4}/include -I ${blake3}/c"
+      "gcc -O3 -Wall -c ffi.c -o ffi.o -I ${pkgs.lean}/include -I ${blake3}/c"
       "ar rcs libblake3.a ${(builtins.concatStringsSep " " (builtins.map (str: "${str}.o") blake3Files))} ffi.o"
     ];
   # The `libblake3.a` static library is exposed as the `staticLib` package, as it must be explicitly linked against
