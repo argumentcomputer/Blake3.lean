@@ -2,7 +2,7 @@
 
 theorem ByteArray.size_of_extract {hash : ByteArray} (hbe : b ≤ e) (h : e ≤ hash.data.size) :
     (hash.extract b e).size = e - b := by
-  simp [ByteArray.size, ByteArray.extract, ByteArray.copySlice, ByteArray.empty, ByteArray.mkEmpty]
+  simp [ByteArray.size, ByteArray.extract, ByteArray.copySlice, ByteArray.empty, ByteArray.emptyWithCapacity]
   rw [Nat.add_comm, Nat.sub_add_cancel hbe, Nat.min_eq_left h]
 
 namespace Blake3
@@ -61,7 +61,7 @@ opaque update (hasher : Hasher) (input : @& ByteArray) : Hasher
 instance {length : USize} : Inhabited { r : ByteArray // r.size = length.toNat } where
   default := ⟨
     ⟨⟨List.replicate length.toNat 0⟩⟩,
-    by simp only [ByteArray.size, List.toArray_replicate, Array.size_mkArray]
+    by simp only [ByteArray.size, List.toArray_replicate, Array.size_replicate]
   ⟩
 
 /-- Finalize the hasher and write the output to an array of a given length. -/
@@ -70,7 +70,7 @@ opaque finalize : (hasher : Hasher) → (length : USize) →
   {r : ByteArray // r.size = length.toNat}
 
 def finalizeWithLength (hasher : Hasher) (length : Nat)
-    (h : length % 2 ^ System.Platform.numBits = length := by native_decide) :
+    (h : length < 2 ^ System.Platform.numBits := by native_decide) :
     { r : ByteArray // r.size = length } :=
   let ⟨hash, h'⟩ := hasher.finalize length.toUSize
   have hash_size_eq_len : hash.size = length := by
