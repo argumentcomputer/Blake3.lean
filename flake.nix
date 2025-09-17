@@ -60,7 +60,10 @@
           staticLib = lib.blake3-c;
         };
         devShells.default = pkgs.mkShell {
-          packages = with pkgs.lean; [lean lean-all pkgs.gcc pkgs.clang];
+          packages = with pkgs; [
+            lean.lean
+            lean.lean-all
+          ];
         };
 
         formatter = pkgs.alejandra;
