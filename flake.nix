@@ -1,16 +1,8 @@
 {
   description = "Blake3 Nix Flake";
 
-  nixConfig = {
-    extra-substituters = [
-      "https://cache.garnix.io"
-    ];
-    extra-trusted-public-keys = [
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-    ];
-  };
-
   inputs = {
+    # Follow lean4/nixpkgs so we stay in sync
     nixpkgs.follows = "lean4-nix/nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
     lean4-nix.url = "github:lenianiva/lean4-nix";
@@ -48,12 +40,13 @@
         };
 
         packages = {
-          default = ((lean4-nix.lake {inherit pkgs;}).mkPackage {
-            src = ./.;
-            roots = ["Blake3Test"];
-            deps = [lib.blake3-lib];
-            staticLibDeps = [ "${lib.blake3-c}/lib" ];
-          })
+          default =
+            ((lean4-nix.lake {inherit pkgs;}).mkPackage {
+              src = ./.;
+              roots = ["Blake3Test"];
+              deps = [lib.blake3-lib];
+              staticLibDeps = ["${lib.blake3-c}/lib"];
+            })
           .executable;
           # Downstream lean4-nix packages must also link to the static lib using the `staticLibDeps` attribute.
           # See https://github.com/argumentcomputer/lean4-nix/blob/dev/templates/dependency/flake.nix for an example
@@ -62,7 +55,6 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             lean.lean
-            lean.lean-all
           ];
         };
 

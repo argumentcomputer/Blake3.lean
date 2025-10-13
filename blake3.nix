@@ -26,7 +26,7 @@
   blake3-c = pkgs.stdenv.mkDerivation {
     name = "blake3-c";
     src = ./.;
-    buildInputs = [pkgs.gcc pkgs.lean.lean-all];
+    buildInputs = [pkgs.gcc pkgs.lean.lean];
     buildPhase = builtins.concatStringsSep "\n" buildSteps;
     installPhase = ''
       mkdir -p $out/lib $out/include
@@ -40,7 +40,7 @@
     name = "blake3-lib";
     src = ./.;
     roots = ["Blake3"];
-    staticLibDeps = [ "${blake3-c}/lib" ];
+    staticLibDeps = ["${blake3-c}/lib"];
     groupStaticLibs = true;
   };
 
