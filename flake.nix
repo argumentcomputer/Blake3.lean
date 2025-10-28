@@ -48,12 +48,13 @@
         };
 
         packages = {
-          default = ((lean4-nix.lake {inherit pkgs;}).mkPackage {
-            src = ./.;
-            roots = ["Blake3Test"];
-            deps = [lib.blake3-lib];
-            staticLibDeps = [ "${lib.blake3-c}/lib" ];
-          })
+          default =
+            ((lean4-nix.lake {inherit pkgs;}).mkPackage {
+              src = ./.;
+              roots = ["Blake3Test"];
+              deps = [lib.blake3-lib];
+              staticLibDeps = ["${lib.blake3-c}/lib"];
+            })
           .executable;
           # Downstream lean4-nix packages must also link to the static lib using the `staticLibDeps` attribute.
           # See https://github.com/argumentcomputer/lean4-nix/blob/dev/templates/dependency/flake.nix for an example
@@ -61,7 +62,6 @@
         };
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            lean.lean
             lean.lean-all
           ];
         };
