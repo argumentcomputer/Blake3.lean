@@ -1,9 +1,8 @@
 /-! Bindings to the BLAKE3 hashing library. -/
 
-theorem ByteArray.size_of_extract {hash : ByteArray} (hbe : b ≤ e) (h : e ≤ hash.data.size) :
+theorem ByteArray.size_of_extract {hash : ByteArray} (h : e ≤ hash.size) :
     (hash.extract b e).size = e - b := by
-  simp [ByteArray.size, ByteArray.extract, ByteArray.copySlice, ByteArray.empty, ByteArray.emptyWithCapacity]
-  rw [Nat.add_comm, Nat.sub_add_cancel hbe, Nat.min_eq_left h]
+  simp [Nat.min_eq_left h]
 
 namespace Blake3
 
@@ -132,7 +131,6 @@ def squeeze (sponge : Sponge) (length : USize)
   have sub_e_b_eq_length : e - b = length.toNat := by
     simp only [b, e]
     rw [Nat.add_comm _ length.toNat, Nat.add_sub_cancel]
-  have le_b_e : b ≤ e := by simp only [Nat.le_add_right, e, b]
   have h_e_bound : e ≤ tmp.size := by
     simp [e, h]
     cases System.Platform.numBits_eq with
@@ -146,8 +144,8 @@ def squeeze (sponge : Sponge) (length : USize)
         rwa [h64, Nat.pow_succ] at h_len_bound
       rw [h64, BLAKE3_OUT_LEN]
       simp only [Nat.mod_eq_of_lt hbound, Nat.le_refl]
-  have size_of_extract := ByteArray.size_of_extract le_b_e h_e_bound
-  ⟨y, by simp only [y, size_of_extract, sub_e_b_eq_length]⟩
+  have size_of_extract := ByteArray.size_of_extract h_e_bound
+  ⟨y, by rw [size_of_extract, sub_e_b_eq_length]⟩
 
 end Sponge
 
