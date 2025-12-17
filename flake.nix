@@ -1,15 +1,6 @@
 {
   description = "Blake3 Nix Flake";
 
-  nixConfig = {
-    extra-substituters = [
-      "https://cache.garnix.io"
-    ];
-    extra-trusted-public-keys = [
-      "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
-    ];
-  };
-
   inputs = {
     nixpkgs.follows = "lean4-nix/nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -40,7 +31,27 @@
         pkgs,
         ...
       }: let
-        lib = (import ./blake3.nix {inherit pkgs lean4-nix blake3;}).lib;
+        lake2nix = pkgs.callPackage lean4-nix.lake {};
+        commonArgs = {
+          src = ./.;
+          postPatch = ''
+            substituteInPlace lakefile.lean --replace-fail 'GitRepo.execGit' '--GitRepo.execGit'
+          '';
+          preConfigure = ''
+            ln -s ${blake3.outPath} ./blake3
+          '';
+        };
+        blake3Lib = lake2nix.mkPackage (commonArgs
+          // {
+            name = "Blake3";
+            buildLibrary = true;
+          });
+        blake3Test = lake2nix.mkPackage (commonArgs
+          // {
+            name = "Blake3Test";
+            lakeArtifacts = blake3Lib;
+            installArtifacts = false;
+          });
       in {
         _module.args.pkgs = import nixpkgs {
           inherit system;
@@ -48,17 +59,8 @@
         };
 
         packages = {
-          default =
-            ((lean4-nix.lake {inherit pkgs;}).mkPackage {
-              src = ./.;
-              roots = ["Blake3Test"];
-              deps = [lib.blake3-lib];
-              staticLibDeps = ["${lib.blake3-c}/lib"];
-            })
-          .executable;
-          # Downstream lean4-nix packages must also link to the static lib using the `staticLibDeps` attribute.
-          # See https://github.com/argumentcomputer/lean4-nix/blob/dev/templates/dependency/flake.nix for an example
-          staticLib = lib.blake3-c;
+          default = blake3Lib;
+          test = blake3Test;
         };
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
