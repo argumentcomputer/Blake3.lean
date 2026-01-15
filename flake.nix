@@ -45,6 +45,9 @@
           // {
             name = "Blake3";
             buildLibrary = true;
+            postInstall = ''
+              cp -P ./blake3 $out
+            '';
           });
         blake3Test = lake2nix.mkPackage (commonArgs
           // {
