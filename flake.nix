@@ -6,7 +6,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     lean4-nix.url = "github:lenianiva/lean4-nix";
     blake3 = {
-      url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.8.2";
+      url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.8.3";
       flake = false;
     };
   };
