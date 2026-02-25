@@ -1,3 +1,4 @@
+module
 /-! Bindings to the BLAKE3 hashing library. -/
 
 theorem ByteArray.size_of_extract {hash : ByteArray} (h : e ≤ hash.size) :
@@ -5,15 +6,18 @@ theorem ByteArray.size_of_extract {hash : ByteArray} (h : e ≤ hash.size) :
   simp [Nat.min_eq_left h]
 
 namespace Blake3
+public section
 
 /-- BLAKE3 constants -/
 abbrev BLAKE3_OUT_LEN : Nat := 32
 abbrev BLAKE3_KEY_LEN : Nat := 32
 
 /-- A wrapper around `ByteArray` whose size is `BLAKE3_OUT_LEN` -/
+@[expose]
 def Blake3Hash : Type := { r : ByteArray // r.size = BLAKE3_OUT_LEN }
 
 /-- A wrapper around `ByteArray` whose size is `BLAKE3_KEY_LEN` -/
+@[expose]
 def Blake3Key : Type := { r : ByteArray // r.size = BLAKE3_KEY_LEN }
 
 def Blake3Key.ofBytes (bytes : ByteArray)
@@ -107,7 +111,7 @@ namespace Sponge
 abbrev ABSORB_MAX_BYTES := UInt32.size - 1
 abbrev DEFAULT_REKEYING_STAGE := UInt16.size - 1
 
-def init (label : String) (_h : ¬label.isEmpty := by decide) : Sponge :=
+def init (label : String) (_h : ¬label.isEmpty := by native_decide) : Sponge :=
   ⟨Hasher.initDeriveKey label.toUTF8, 0⟩
 
 def ratchet (sponge : Sponge) : Sponge :=
@@ -149,4 +153,5 @@ def squeeze (sponge : Sponge) (length : USize)
 
 end Sponge
 
+end
 end Blake3
