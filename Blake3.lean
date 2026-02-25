@@ -85,7 +85,6 @@ def finalizeWithLength (hasher : Hasher) (length : Nat)
 end Hasher
 
 /-- Hash a ByteArray -/
-@[expose]
 def hash (input : ByteArray) : Blake3Hash :=
   let hasher := Hasher.init ()
   let hasher := hasher.update input
@@ -112,7 +111,6 @@ namespace Sponge
 abbrev ABSORB_MAX_BYTES := UInt32.size - 1
 abbrev DEFAULT_REKEYING_STAGE := UInt16.size - 1
 
-@[expose]
 def init (label : String) (_h : ¬label.isEmpty := by native_decide) : Sponge :=
   ⟨Hasher.initDeriveKey label.toUTF8, 0⟩
 
