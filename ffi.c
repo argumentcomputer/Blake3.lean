@@ -97,5 +97,6 @@ extern lean_obj_res lean_blake3_hasher_finalize(lean_obj_arg self, size_t len) {
     lean_object *out = lean_alloc_sarray(1, len, len);
     lean_object *a = lean_ensure_exclusive_blake3_hasher(self);
     blake3_hasher_finalize(lean_get_external_data(a), lean_sarray_cptr(out), len);
+    lean_dec(a);
     return out;
 }
