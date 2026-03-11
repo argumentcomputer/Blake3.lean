@@ -9,6 +9,14 @@
       url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.8.3";
       flake = false;
     };
+    # Rust-related inputs
+    fenix = {
+      url = "github:nix-community/fenix";
+      # Follow lean4-nix nixpkgs so we stay in sync
+      inputs.nixpkgs.follows = "lean4-nix/nixpkgs";
+    };
+
+    crane.url = "github:ipetkov/crane";
   };
 
   outputs = inputs @ {
@@ -16,6 +24,8 @@
     flake-parts,
     lean4-nix,
     blake3,
+    fenix,
+    crane,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
@@ -31,6 +41,11 @@
         pkgs,
         ...
       }: let
+        # Pins the Rust toolchain
+        rustToolchain = fenix.packages.${system}.fromToolchainFile {
+          file = ./rust-toolchain.toml;
+          sha256 = "sha256-sqSWJDUxc+zaz1nBWMAJKTAGBuGWP25GCftIOlCEAtA=";
+        };
         lake2nix = pkgs.callPackage lean4-nix.lake {};
         commonArgs = {
           src = ./.;
@@ -66,8 +81,12 @@
           test = blake3Test;
         };
         devShells.default = pkgs.mkShell {
+          # Add libclang for FFI with rust-bindgen
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
           packages = with pkgs; [
+            clang
             lean.lean-all
+            rustToolchain
           ];
         };
 

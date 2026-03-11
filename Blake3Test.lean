@@ -1,6 +1,29 @@
-import Blake3
+import Blake3.C
+import Blake3.Rust
+
+open Blake3
+
+class Blake3Backend (H : Type) [HasherOps H] where
+  name : String
+  version : String
+
+instance : Blake3Backend Blake3.C.Hasher where
+  name := "C"
+  version := Blake3.C.version
+
+instance : Blake3Backend Blake3.Rust.Hasher where
+  name := "Rust"
+  version := Blake3.Rust.version
 
 abbrev input : ByteArray := ⟨#[0]⟩
+
+abbrev key : Blake3Key := .ofBytes ⟨#[
+     3, 123,  16, 175,  8, 196, 101, 134,
+   144, 184, 221,  34, 25, 106, 122, 200,
+   213,  14, 159, 189, 82, 166,  91, 107,
+    33,  78,  26, 226, 89,  65, 188, 92
+]⟩
+
 abbrev expectedOutputRegularHashing : ByteArray := ⟨#[
    45,  58, 222, 223, 241,  27,  97, 241,
    76, 136, 110,  53, 175, 160,  54, 115,
@@ -8,13 +31,6 @@ abbrev expectedOutputRegularHashing : ByteArray := ⟨#[
    81,   2,  37, 208, 245, 146, 226,  19
 ]⟩
 
--- Good pseudo-random key
-abbrev key : Blake3.Blake3Key := .ofBytes ⟨#[
-     3, 123,  16, 175,  8, 196, 101, 134,
-   144, 184, 221,  34, 25, 106, 122, 200,
-   213,  14, 159, 189, 82, 166,  91, 107,
-    33,  78,  26, 226, 89,  65, 188, 92
-]⟩
 abbrev expectedOutputKeyedHashing: ByteArray := ⟨#[
    145, 187, 220, 234, 206, 139, 205, 138,
    220, 103,  35,  65, 199,  96, 210,  18,
@@ -22,8 +38,8 @@ abbrev expectedOutputKeyedHashing: ByteArray := ⟨#[
      2,  29,  12,  32,  17, 118, 181, 232
 ]⟩
 
--- Context (with "bad" randomness)
 abbrev context : ByteArray := ⟨#[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]⟩
+
 abbrev expectedOutputDeriveKeyHashing: ByteArray := ⟨#[
     34,  57,  22,  43, 164, 211,  65, 131,
     90,  55,  55,  92,  68,  90,  63, 136,
@@ -39,22 +55,24 @@ abbrev expectedOutputSponge : ByteArray := ⟨#[
    154,  99, 175,   9, 196, 102, 126,  72,  27,  86
 ]⟩
 
-def hashingFails :=
-  (Blake3.hash input).val.data != expectedOutputRegularHashing.data ||
-  (Blake3.hashKeyed input key).val.data != expectedOutputKeyedHashing.data ||
-  (Blake3.hashDeriveKey input context).val.data != expectedOutputDeriveKeyHashing.data
+def runTests (H : Type) [HasherOps H] [b : Blake3Backend H] : IO Bool := do
+  println! s!"BLAKE3 version ({b.name}): {b.version}"
+  let hashFails :=
+    (HasherOps.hash (H := H) input).val.data != expectedOutputRegularHashing.data ||
+    (HasherOps.hashKeyed (H := H) input key).val.data != expectedOutputKeyedHashing.data ||
+    (HasherOps.hashDeriveKey (H := H) input context).val.data != expectedOutputDeriveKeyHashing.data
+  let spongeFails :=
+    let s : Sponge H := Sponge.init "ix 2025-01-01 16:18:03 content-addressing v1"
+    let s := s.absorb ⟨#[1]⟩ |>.absorb ⟨#[2]⟩ |>.absorb ⟨#[3]⟩ |>.absorb ⟨#[4, 5]⟩
+    (s.squeeze 50).val.data != expectedOutputSponge.data
+  if hashFails || spongeFails
+    then IO.eprintln s!"BLAKE3 {b.name} test failed";    return false
+    else IO.println  s!"BLAKE3 {b.name} test succeeded"; return true
 
-def spongeFails :=
-  let sponge := Blake3.Sponge.init "ix 2025-01-01 16:18:03 content-addressing v1"
-  let sponge := sponge.absorb ⟨#[1]⟩
-  let sponge := sponge.absorb ⟨#[2]⟩
-  let sponge := sponge.absorb ⟨#[3]⟩
-  let sponge := sponge.absorb ⟨#[4, 5]⟩
-  let output := sponge.squeeze 50
-  output.val.data != expectedOutputSponge.data
-
-def main : IO UInt32 := do
-  println! s!"BLAKE3 version: {Blake3.version}"
-  if hashingFails || spongeFails
-    then IO.eprintln "BLAKE3 test failed";    return 1
-    else IO.println  "BLAKE3 test succeeded"; return 0
+def main (args : List String) : IO UInt32 := do
+  let runC    := args.isEmpty || args.contains "c"
+  let runRust := args.isEmpty || args.contains "rust"
+  let mut ok := true
+  if runC    then ok := (← runTests Blake3.C.Hasher) && ok
+  if runRust then ok := (← runTests Blake3.Rust.Hasher) && ok
+  return if ok then 0 else 1
