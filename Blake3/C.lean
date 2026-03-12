@@ -46,5 +46,17 @@ abbrev hashKeyed := HasherOps.hashKeyed (H := Hasher)
 abbrev hashDeriveKey := HasherOps.hashDeriveKey (H := Hasher)
 abbrev Sponge := Blake3.Sponge Hasher
 
+-- Dot-notation aliases: `Hasher.init`, `h.update`, `h.finalizeWithLength`
+namespace Hasher
+
+abbrev init := hasherInit
+abbrev update := hasherUpdate
+
+def finalizeWithLength (hasher : Hasher) (length : Nat)
+    (h : length < 2 ^ System.Platform.numBits := by native_decide) :=
+  HasherOps.finalizeWithLength hasher length h
+
+end Hasher
+
 end
 end Blake3.C

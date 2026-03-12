@@ -1,7 +1,7 @@
 module
 /-! Shared types and generic logic for BLAKE3 bindings. -/
 
-private theorem ByteArray.size_of_extract {hash : ByteArray} (h : e ≤ hash.size) :
+theorem ByteArray.size_of_extract {hash : ByteArray} (h : e ≤ hash.size) :
     (hash.extract b e).size = e - b := by
   simp [Nat.min_eq_left h]
 

@@ -17,18 +17,19 @@ instance : Blake3Backend Blake3.Rust.Hasher where
 
 abbrev input : ByteArray := ⟨#[0]⟩
 
-abbrev key : Blake3Key := .ofBytes ⟨#[
-     3, 123,  16, 175,  8, 196, 101, 134,
-   144, 184, 221,  34, 25, 106, 122, 200,
-   213,  14, 159, 189, 82, 166,  91, 107,
-    33,  78,  26, 226, 89,  65, 188, 92
-]⟩
-
 abbrev expectedOutputRegularHashing : ByteArray := ⟨#[
    45,  58, 222, 223, 241,  27,  97, 241,
    76, 136, 110,  53, 175, 160,  54, 115,
   109, 205, 135, 167,  77,  39, 181, 193,
    81,   2,  37, 208, 245, 146, 226,  19
+]⟩
+
+-- Good pseudo-random key
+abbrev key : Blake3Key := .ofBytes ⟨#[
+     3, 123,  16, 175,  8, 196, 101, 134,
+   144, 184, 221,  34, 25, 106, 122, 200,
+   213,  14, 159, 189, 82, 166,  91, 107,
+    33,  78,  26, 226, 89,  65, 188, 92
 ]⟩
 
 abbrev expectedOutputKeyedHashing: ByteArray := ⟨#[
@@ -38,6 +39,7 @@ abbrev expectedOutputKeyedHashing: ByteArray := ⟨#[
      2,  29,  12,  32,  17, 118, 181, 232
 ]⟩
 
+-- Context (with "bad" randomness)
 abbrev context : ByteArray := ⟨#[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]⟩
 
 abbrev expectedOutputDeriveKeyHashing: ByteArray := ⟨#[
