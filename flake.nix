@@ -43,6 +43,19 @@
       }: let
         lake2nix = pkgs.callPackage lean4-nix.lake {};
 
+        # Filter out build directories
+        lakeSrc = pkgs.lib.cleanSourceWith {
+          src = ./.;
+          filter = path: type: let
+            name = builtins.baseNameOf path;
+          in
+            name
+            != "target"
+            && name != ".lake"
+            && name
+            != "build";
+        };
+
         # Lakefile patches for Nix builds
         disableGitClone = ''
           substituteInPlace lakefile.lean --replace-fail 'GitRepo.execGit' '--GitRepo.execGit'
@@ -87,7 +100,7 @@
 
         blake3C = lake2nix.mkPackage {
           name = "Blake3C";
-          src = ./.;
+          src = lakeSrc;
           buildLibrary = true;
           postPatch = disableGitClone;
           preConfigure = linkBlake3Src;
@@ -98,17 +111,17 @@
 
         blake3Rust = lake2nix.mkPackage {
           name = "Blake3Rust";
-          src = ./.;
+          src = lakeSrc;
           postPatch = disableCargoBuild;
           postConfigure = linkRustLib;
           postInstall = ''
-            cp -rP rust/target/release $out/rust/target
+            cp -rP rust/target/ $out/rust/target/
           '';
         };
 
         blake3Test = lake2nix.mkPackage {
           name = "Blake3Test";
-          src = ./.;
+          src = lakeSrc;
           installArtifacts = false;
           # Merge .lake artifacts from both C and Rust library builds
           prePatch = ''
