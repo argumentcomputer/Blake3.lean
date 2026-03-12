@@ -1,4 +1,12 @@
+# Lean
 /.lake
+# Local clone for Lake build
 /blake3
+
+# Rust
+**/target
+
+# Nix
 result*
 .direnv/
+

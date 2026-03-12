@@ -4,7 +4,7 @@
 /**
  * Wrap around the blake3_version function and construct a lean string.
  */
-extern lean_obj_res lean_blake3_version() {
+extern lean_obj_res c_blake3_version() {
     const char *v = blake3_version();
     return lean_mk_string(v);
 }
@@ -46,7 +46,7 @@ static inline lean_obj_res blake3_hasher_copy(lean_object *self) {
 /**
  * Initialize a hasher.
  */
-extern lean_obj_res lean_blake3_init() {
+extern lean_obj_res c_blake3_init() {
     blake3_hasher *a = malloc(sizeof(blake3_hasher));
     blake3_hasher_init(a);
     return lean_alloc_external(get_blake3_hasher_class(), a);
@@ -55,7 +55,7 @@ extern lean_obj_res lean_blake3_init() {
 /**
  * Initialize a hasher using pseudo-random key
  */
-extern lean_obj_res lean_blake3_init_keyed(b_lean_obj_arg key) {
+extern lean_obj_res c_blake3_init_keyed(b_lean_obj_arg key) {
     blake3_hasher *a = malloc(sizeof(blake3_hasher));
     blake3_hasher_init_keyed(a, lean_sarray_cptr(key));
     return lean_alloc_external(get_blake3_hasher_class(), a);
@@ -64,7 +64,7 @@ extern lean_obj_res lean_blake3_init_keyed(b_lean_obj_arg key) {
 /**
  * Initialize a hasher using some arbitrary context
  */
- extern lean_obj_res lean_blake3_init_derive_key(b_lean_obj_arg context) {
+ extern lean_obj_res c_blake3_init_derive_key(b_lean_obj_arg context) {
      blake3_hasher *a = malloc(sizeof(blake3_hasher));
      blake3_hasher_init_derive_key_raw(a, lean_sarray_cptr(context), lean_sarray_size(context));
      return lean_alloc_external(get_blake3_hasher_class(), a);
@@ -80,7 +80,7 @@ static inline lean_obj_res lean_ensure_exclusive_blake3_hasher(lean_obj_arg a) {
     return blake3_hasher_copy(a);
 }
 
-extern lean_obj_res lean_blake3_hasher_update(lean_obj_arg self, b_lean_obj_arg input) {
+extern lean_obj_res c_blake3_hasher_update(lean_obj_arg self, b_lean_obj_arg input) {
     lean_object *a = lean_ensure_exclusive_blake3_hasher(self);
     blake3_hasher_update(
         lean_get_external_data(a),
@@ -93,7 +93,7 @@ extern lean_obj_res lean_blake3_hasher_update(lean_obj_arg self, b_lean_obj_arg 
 /**
  * Finalize the hasher and return the hash given the length.
  */
-extern lean_obj_res lean_blake3_hasher_finalize(lean_obj_arg self, size_t len) {
+extern lean_obj_res c_blake3_hasher_finalize(lean_obj_arg self, size_t len) {
     lean_object *out = lean_alloc_sarray(1, len, len);
     lean_object *a = lean_ensure_exclusive_blake3_hasher(self);
     blake3_hasher_finalize(lean_get_external_data(a), lean_sarray_cptr(out), len);

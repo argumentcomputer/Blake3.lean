@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -20,6 +21,36 @@ jobs:
         with:
           build-args: "--wfail"
           test: true
+
+  valgrind:
+    needs: lean-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      # Only restore the cache, since the `test` job will save the test binary to the cache first
+      - uses: actions/cache/restore@v5
+        with:
+          path: ./test/.lake
+          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('test/lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('test/lake-manifest.json') }}
+      - uses: leanprover/lean-action@v1
+        with:
+          auto-config: false
+          build: true
+          build-args: "Blake3Test"
+          use-github-cache: false
+      - name: Install valgrind
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+      - name: Run tests under valgrind
+        run: |
+          valgrind \
+            --leak-check=full \
+            --show-leak-kinds=definite,possible \
+            --errors-for-leak-kinds=definite \
+            --track-origins=yes \
+            --error-exitcode=1 \
+            .lake/build/bin/Blake3Test
 
   nix-test:
     name: Nix Tests
