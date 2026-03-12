@@ -1,4 +1,5 @@
-import Blake3
+module
+public import Blake3
 /-! Rust-backed BLAKE3 bindings. -/
 
 namespace Blake3.Rust
@@ -18,19 +19,19 @@ protected opaque internalVersion : Unit → String
 def version : String := Blake3.Rust.internalVersion ()
 
 @[extern "rs_blake3_init"]
-private opaque hasherInit : Unit → Hasher
+opaque hasherInit : Unit → Hasher
 
 @[extern "rs_blake3_init_keyed"]
-private opaque hasherInitKeyed : @& Blake3Key → Hasher
+opaque hasherInitKeyed : @& Blake3Key → Hasher
 
 @[extern "rs_blake3_init_derive_key"]
-private opaque hasherInitDeriveKey : @& ByteArray → Hasher
+opaque hasherInitDeriveKey : @& ByteArray → Hasher
 
 @[extern "rs_blake3_hasher_update"]
-private opaque hasherUpdate : Hasher → @& ByteArray → Hasher
+opaque hasherUpdate : Hasher → @& ByteArray → Hasher
 
 @[extern "rs_blake3_hasher_finalize"]
-private opaque hasherFinalize : Hasher → (length : USize) →
+opaque hasherFinalize : Hasher → (length : USize) →
   { r : ByteArray // r.size = length.toNat }
 
 instance : HasherOps Hasher where

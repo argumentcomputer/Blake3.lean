@@ -41,35 +41,85 @@
         pkgs,
         ...
       }: let
+        lake2nix = pkgs.callPackage lean4-nix.lake {};
+
+        # Lakefile patches for Nix builds
+        disableGitClone = ''
+          substituteInPlace lakefile.lean --replace-fail 'GitRepo.execGit' '--GitRepo.execGit'
+        '';
+        # Don't build the `blake3_rs` static lib with Lake, since we build it with Crane
+        disableCargoBuild = ''
+          substituteInPlace lakefile.lean --replace-fail 'proc { cmd := "cargo"' '--proc { cmd := "cargo"'
+        '';
+        linkBlake3Src = ''
+          ln -s ${blake3.outPath} ./blake3
+        '';
+        # Copy the `blake3_rs` static lib from Crane to `target/release` so Lake can use it
+        linkRustLib = ''
+          mkdir -p rust/target/release
+          ln -s ${rustPkg}/lib/libblake3_rs.a rust/target/release/
+        '';
+
         # Pins the Rust toolchain
         rustToolchain = fenix.packages.${system}.fromToolchainFile {
           file = ./rust-toolchain.toml;
           sha256 = "sha256-sqSWJDUxc+zaz1nBWMAJKTAGBuGWP25GCftIOlCEAtA=";
         };
-        lake2nix = pkgs.callPackage lean4-nix.lake {};
-        commonArgs = {
+
+        # Rust package
+        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+        rustPkg = craneLib.buildPackage {
+          src = craneLib.cleanCargoSource ./rust;
+          strictDeps = true;
+
+          # `lean-ffi` uses `LEAN_SYSROOT` to locate `lean.h` for bindgen
+          LEAN_SYSROOT = "${pkgs.lean.lean-all}";
+          # bindgen needs libclang to parse C headers
+          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+
+          buildInputs =
+            []
+            ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+              # Additional darwin specific inputs can be set here
+              pkgs.libiconv
+            ];
+        };
+
+        blake3C = lake2nix.mkPackage {
+          name = "Blake3C";
           src = ./.;
-          postPatch = ''
-            substituteInPlace lakefile.lean --replace-fail 'GitRepo.execGit' '--GitRepo.execGit'
-          '';
-          preConfigure = ''
-            ln -s ${blake3.outPath} ./blake3
+          buildLibrary = true;
+          postPatch = disableGitClone;
+          preConfigure = linkBlake3Src;
+          postInstall = ''
+            cp -rP ./blake3 $out
           '';
         };
-        blake3Lib = lake2nix.mkPackage (commonArgs
-          // {
-            name = "Blake3";
-            buildLibrary = true;
-            postInstall = ''
-              cp -rP ./blake3 $out
-            '';
-          });
-        blake3Test = lake2nix.mkPackage (commonArgs
-          // {
-            name = "Blake3Test";
-            lakeArtifacts = blake3Lib;
-            installArtifacts = false;
-          });
+
+        blake3Rust = lake2nix.mkPackage {
+          name = "Blake3Rust";
+          src = ./.;
+          postPatch = disableCargoBuild;
+          postConfigure = linkRustLib;
+          postInstall = ''
+            cp -rP rust/target/release $out/rust/target
+          '';
+        };
+
+        blake3Test = lake2nix.mkPackage {
+          name = "Blake3Test";
+          src = ./.;
+          installArtifacts = false;
+          # Merge .lake artifacts from both C and Rust library builds
+          prePatch = ''
+            rsync -a ${blake3C}/.lake/ .lake/
+            rsync -a ${blake3Rust}/.lake/ .lake/
+            chmod -R +w .lake
+          '';
+          postPatch = disableGitClone + disableCargoBuild;
+          preConfigure = linkBlake3Src;
+          postConfigure = linkRustLib;
+        };
       in {
         _module.args.pkgs = import nixpkgs {
           inherit system;
@@ -77,7 +127,8 @@
         };
 
         packages = {
-          default = blake3Lib;
+          default = blake3C;
+          rust = blake3Rust;
           test = blake3Test;
         };
         devShells.default = pkgs.mkShell {

@@ -5,8 +5,7 @@ open Lake DSL
 package Blake3
 
 @[default_target]
-lean_lib Blake3 where
-  precompileModules := true
+lean_lib Blake3
 
 @[test_driver]
 lean_exe Blake3Test
@@ -74,9 +73,8 @@ target blake3_c pkg : System.FilePath := do
   let name := nameToStaticLib "blake3_c"
   buildStaticLib (pkg.staticLibDir / name) oFileJobs
 
-lean_lib «Blake3.C» where
+lean_lib Blake3C where
   roots := #[`Blake3.C]
-  precompileModules := true
   moreLinkObjs := #[blake3_c]
 
 -- Rust FFI
@@ -85,8 +83,7 @@ target blake3_rs pkg : System.FilePath := do
   let libName := nameToStaticLib "blake3_rs"
   inputBinFile $ pkg.dir / "rust" / "target" / "release" / libName
 
-lean_lib «Blake3.Rust» where
+lean_lib Blake3Rust where
   roots := #[`Blake3.Rust]
-  precompileModules := true
   moreLinkObjs := #[blake3_rs]
 
