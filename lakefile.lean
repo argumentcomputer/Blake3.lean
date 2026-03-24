@@ -5,12 +5,12 @@ open Lake DSL
 package Blake3
 
 @[default_target]
-lean_lib Blake3 where
-  precompileModules := true
+lean_lib Blake3
 
 @[test_driver]
 lean_exe Blake3Test
 
+-- BLAKE3 C source
 abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
 abbrev blake3RepoTag := "1.8.3"
 
@@ -25,6 +25,7 @@ target cloneBlake3 pkg : GitRepo := do
   -- Checkout to a fixed tag
   GitRepo.execGit #["fetch", "--tags"] repoDir
   GitRepo.execGit #["checkout", blake3RepoTag] repoDir
+
   return pure repoDir
 
 def blake3CDir (blake3Repo : GitRepo) : System.FilePath :=
@@ -47,24 +48,42 @@ def buildBlake3Obj (pkg : Package) (fileName : String) := do
   let oFile := pkg.buildDir / fileName |>.addExtension "o"
   let includeArgs := #["-fPIC", "-I", cDir.toString]
   let weakArgs := includeArgs ++ blake3Flags
+
   buildO oFile srcJob weakArgs #[] compiler getLeanTrace
 
-target ffi.o pkg : System.FilePath := do
+-- C FFI
+target ffi_c pkg : System.FilePath := do
   let blake3Repo ← cloneBlake3.fetch >>= (·.await)
-  let oFile := pkg.buildDir / "ffi.o"
+  let oFile := pkg.buildDir / "ffi_c.o"
   let srcJob ← inputTextFile $ pkg.dir / "ffi.c"
   let leanIncludeDir ← getLeanIncludeDir
   let cDir := blake3CDir blake3Repo
   let weakArgs := #["-fPIC", "-I", leanIncludeDir.toString, "-I", cDir.toString]
+
   buildO oFile srcJob weakArgs #[] compiler getLeanTrace
 
-extern_lib ffi pkg := do
+target blake3_c pkg : System.FilePath := do
   -- Gather all `.o` file build jobs
   let blake3O ← buildBlake3Obj pkg "blake3"
   let blake3DispatchO ← buildBlake3Obj pkg "blake3_dispatch"
   let blake3PortableO ← buildBlake3Obj pkg "blake3_portable"
-  let ffiO ← ffi.o.fetch
+  let ffiO ← ffi_c.fetch
   let oFileJobs := #[blake3O, blake3DispatchO, blake3PortableO, ffiO]
 
-  let name := nameToStaticLib "ffi"
+  let name := nameToStaticLib "blake3_c"
   buildStaticLib (pkg.staticLibDir / name) oFileJobs
+
+lean_lib Blake3C where
+  roots := #[`Blake3.C]
+  moreLinkObjs := #[blake3_c]
+
+-- Rust FFI
+target blake3_rs pkg : System.FilePath := do
+  proc { cmd := "cargo", args := #["build", "--release"], cwd := pkg.dir / "rust" } (quiet := true)
+  let libName := nameToStaticLib "blake3_rs"
+  inputBinFile $ pkg.dir / "rust" / "target" / "release" / libName
+
+lean_lib Blake3Rust where
+  roots := #[`Blake3.Rust]
+  moreLinkObjs := #[blake3_rs]
+

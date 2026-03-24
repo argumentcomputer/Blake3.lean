@@ -1,0 +1,17 @@
+[package]
+name = "blake3-rs"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+blake3 = "1.8.3"
+lean-ffi = { git = "https://github.com/argumentcomputer/lean-ffi", rev = "2ee6267354ce460a8dd95ae9f087cc2569a90ad6" }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
