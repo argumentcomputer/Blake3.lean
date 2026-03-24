@@ -8,7 +8,7 @@ Add Blake3 as a dependency in your `lakefile.lean`:
 
 ```lean
 require Blake3 from git
-  "https://github.com/pnmadelaea/Blake3.lean" @ "<commit-hash>"
+  "https://github.com/argumentcomputer/Blake3.lean" @ "<commit-hash>"
 ```
 
 ### C backend
