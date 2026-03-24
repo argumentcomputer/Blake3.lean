@@ -151,6 +151,7 @@
             clang
             lean.lean-all
             rustToolchain
+            rust-analyzer
           ];
         };
 

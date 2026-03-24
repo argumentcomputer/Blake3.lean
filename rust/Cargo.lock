@@ -158,7 +158,7 @@ dependencies = [
 [[package]]
 name = "lean-ffi"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/lean-ffi?rev=91185181da859eb3941df2fbede24ae03838ed5b#91185181da859eb3941df2fbede24ae03838ed5b"
+source = "git+https://github.com/argumentcomputer/lean-ffi?rev=b194f3f17d1959562ef850527aa70bde43358086#b194f3f17d1959562ef850527aa70bde43358086"
 dependencies = [
  "bindgen",
  "cc",
