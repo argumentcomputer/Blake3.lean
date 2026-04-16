@@ -9,7 +9,7 @@ static HASHER_CLASS: LazyLock<ExternalClass> =
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rs_blake3_version() -> LeanString<LeanOwned> {
-    LeanString::new("1.8.3")
+    LeanString::new("1.8.4")
 }
 
 #[unsafe(no_mangle)]

@@ -3,16 +3,16 @@
     "blake3": {
       "flake": false,
       "locked": {
-        "lastModified": 1767892649,
-        "narHash": "sha256-aj+fru2saqWxDDiV3mNCZZeZIGTxSgta/X50R87hoko=",
+        "lastModified": 1774888911,
+        "narHash": "sha256-Xz0LH0YpUjDishvXsW6VNK8msFlPXg08wFoSfbgws0g=",
         "owner": "BLAKE3-team",
         "repo": "BLAKE3",
-        "rev": "8b829b697fa4cfe35de35e9aa8c20b56266cb091",
+        "rev": "b97a24f8754819755ef78d8016c0391c65c943c5",
         "type": "github"
       },
       "original": {
         "owner": "BLAKE3-team",
-        "ref": "refs/tags/1.8.3",
+        "ref": "refs/tags/1.8.4",
         "repo": "BLAKE3",
         "type": "github"
       }

@@ -12,7 +12,7 @@ lean_exe Blake3Test
 
 -- BLAKE3 C source
 abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
-abbrev blake3RepoTag := "1.8.3"
+abbrev blake3RepoTag := "1.8.4"
 
 target cloneBlake3 pkg : GitRepo := do
   let repoDir : GitRepo := pkg.dir / "blake3"
