@@ -1,3 +1,7 @@
+# Declare our own workspace so Cargo doesn't auto-include this crate in a
+# downstream workspace when Lake materializes the package under `.lake/`.
+[workspace]
+
 [package]
 name = "blake3-rs"
 version = "0.1.0"
