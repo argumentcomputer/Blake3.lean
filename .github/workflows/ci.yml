@@ -16,7 +16,7 @@ jobs:
     name: Lean Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: leanprover/lean-action@v1
         with:
           build-args: "--wfail"
@@ -26,10 +26,10 @@ jobs:
     needs: lean-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       # Only restore the cache, since the `test` job will save the test binary to the cache first
-      - uses: actions/cache/restore@v5
+      - uses: actions/cache/restore@v6
         with:
           path: ./test/.lake
           key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('test/lake-manifest.json') }}-${{ github.sha }}
@@ -56,7 +56,7 @@ jobs:
     name: Nix Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
