@@ -1,6 +1,15 @@
 {
   description = "Blake3 Nix Flake";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://argumentcomputer.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "argumentcomputer.cachix.org-1:ovhbTx1V56BYDerOWInQvXKXl68LlhNwEA+n7EWk1m4="
+    ];
+  };
+
   inputs = {
     nixpkgs.follows = "lean4-nix/nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -81,7 +90,7 @@
 
         # Rust package
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
-        rustPkg = craneLib.buildPackage {
+        craneArgs = {
           src = craneLib.cleanCargoSource ./rust;
           strictDeps = true;
 
@@ -97,6 +106,18 @@
               pkgs.libiconv
             ];
         };
+        # Build dependencies once and share them across the package build and
+        # the clippy check instead of recompiling them per consumer.
+        cargoArtifacts = craneLib.buildDepsOnly craneArgs;
+        # doCheck = false: the crate has no Rust unit tests, and the Lean
+        # `blake3-test` check is where the suite runs.
+        rustPkg = craneLib.buildPackage (
+          craneArgs
+          // {
+            inherit cargoArtifacts;
+            doCheck = false;
+          }
+        );
 
         blake3C = lake2nix.mkPackage {
           name = "Blake3C";
@@ -142,7 +163,23 @@
         packages = {
           default = blake3C;
           rust = blake3Rust;
-          test = blake3Test;
+        };
+
+        checks = {
+          # Lint the Rust FFI crate; warnings are errors.
+          clippy = craneLib.cargoClippy (
+            craneArgs
+            // {
+              inherit cargoArtifacts;
+              cargoClippyExtraArgs = "--all-targets -- -D warnings";
+            }
+          );
+          # Run the Lean test suite (exercises both the C and Rust backends)
+          # at check time so it runs via `nix flake check`.
+          blake3-test = pkgs.runCommand "blake3-test" {} ''
+            ${blake3Test}/bin/Blake3Test
+            touch $out
+          '';
         };
         devShells.default = pkgs.mkShell {
           # Add libclang for FFI with rust-bindgen
