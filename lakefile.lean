@@ -15,7 +15,7 @@ abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
 abbrev blake3RepoTag := "1.8.7"
 
 target cloneBlake3 pkg : GitRepo := do
-  let repoDir : GitRepo := pkg.dir / "blake3"
+  let repoDir : GitRepo := pkg.dir / "blake3-source"
 
   -- Clone if it hasn't already been cloned
   let alreadyCloned ← repoDir.dir.pathExists
