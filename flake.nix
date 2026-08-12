@@ -28,15 +28,16 @@
     crane.url = "github:ipetkov/crane";
   };
 
-  outputs = inputs @ {
-    flake-parts,
-    lean4-nix,
-    blake3,
-    fenix,
-    crane,
-    ...
-  }:
-    flake-parts.lib.mkFlake {inherit inputs;} {
+  outputs =
+    inputs@{
+      flake-parts,
+      lean4-nix,
+      blake3,
+      fenix,
+      crane,
+      ...
+    }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "aarch64-darwin"
         "aarch64-linux"
@@ -44,152 +45,155 @@
         "x86_64-linux"
       ];
 
-      perSystem = {
-        system,
-        pkgs,
-        ...
-      }: let
-        # Pins the Lean toolchain; a plain derivation, no overlay involved
-        lean = lean4-nix.lib.${system}.fromToolchainFile ./lean-toolchain;
+      perSystem =
+        {
+          system,
+          pkgs,
+          ...
+        }:
+        let
+          # Pins the Lean toolchain; a plain derivation, no overlay involved
+          lean = lean4-nix.lib.${system}.fromToolchainFile ./lean-toolchain;
 
-        lake2nix = pkgs.callPackage lean4-nix.lake {inherit lean;};
+          lake2nix = pkgs.callPackage lean4-nix.lake { inherit lean; };
 
-        # Filter out build directories
-        lakeSrc = pkgs.lib.cleanSourceWith {
-          src = ./.;
-          filter = path: type: let
-            name = builtins.baseNameOf path;
-          in
-            name
-            != "target"
-            && name != ".lake"
-            && name
-            != "build";
-        };
+          # Filter out build directories
+          lakeSrc = pkgs.lib.cleanSourceWith {
+            src = ./.;
+            filter =
+              path: type:
+              let
+                name = builtins.baseNameOf path;
+              in
+              name != "target" && name != ".lake" && name != "build";
+          };
 
-        # Lakefile patches for Nix builds
-        disableGitClone = ''
-          substituteInPlace lakefile.lean --replace-fail 'GitRepo.execGit' '--GitRepo.execGit'
-        '';
-        # Don't build the `blake3_rs` static lib with Lake, since we build it with Crane
-        disableCargoBuild = ''
-          substituteInPlace lakefile.lean --replace-fail 'proc { cmd := "cargo"' '--proc { cmd := "cargo"'
-        '';
-        linkBlake3Src = ''
-          ln -s ${blake3.outPath} ./blake3
-        '';
-        # Copy the `blake3_rs` static lib from Crane to `target/release` so Lake can use it
-        linkRustLib = ''
-          mkdir -p rust/target/release
-          ln -s ${rustPkg}/lib/libblake3_rs.a rust/target/release/
-        '';
-
-        # Pins the Rust toolchain
-        rustToolchain = fenix.packages.${system}.fromToolchainFile {
-          file = ./rust-toolchain.toml;
-          sha256 = "sha256-sqSWJDUxc+zaz1nBWMAJKTAGBuGWP25GCftIOlCEAtA=";
-        };
-
-        # Rust package
-        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
-        craneArgs = {
-          src = craneLib.cleanCargoSource ./rust;
-          strictDeps = true;
-
-          # `lean-ffi` uses `LEAN_SYSROOT` to locate `lean.h` for bindgen
-          LEAN_SYSROOT = "${lean}";
-          # bindgen needs libclang to parse C headers
-          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-
-          buildInputs =
-            []
-            ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-              # Additional darwin specific inputs can be set here
-              pkgs.libiconv
-            ];
-        };
-        # Build dependencies once and share them across the package build and
-        # the clippy check instead of recompiling them per consumer.
-        cargoArtifacts = craneLib.buildDepsOnly craneArgs;
-        # doCheck = false: the crate has no Rust unit tests, and the Lean
-        # `blake3-test` check is where the suite runs.
-        rustPkg = craneLib.buildPackage (
-          craneArgs
-          // {
-            inherit cargoArtifacts;
-            doCheck = false;
-          }
-        );
-
-        blake3C = lake2nix.mkPackage {
-          name = "Blake3C";
-          src = lakeSrc;
-          buildLibrary = true;
-          postPatch = disableGitClone;
-          preConfigure = linkBlake3Src;
-          postInstall = ''
-            cp -rP ./blake3 $out
+          # Lakefile patches for Nix builds
+          disableGitClone = ''
+            substituteInPlace lakefile.lean --replace-fail 'GitRepo.execGit' '--GitRepo.execGit'
           '';
-        };
-
-        blake3Rust = lake2nix.mkPackage {
-          name = "Blake3Rust";
-          src = lakeSrc;
-          postPatch = disableCargoBuild;
-          postConfigure = linkRustLib;
-          postInstall = ''
-            cp -rP rust/target/ $out/rust/target/
+          # Don't build the `blake3_rs` static lib with Lake, since we build it with Crane
+          disableCargoBuild = ''
+            substituteInPlace lakefile.lean --replace-fail 'proc { cmd := "cargo"' '--proc { cmd := "cargo"'
           '';
-        };
-
-        blake3Test = lake2nix.mkPackage {
-          name = "Blake3Test";
-          src = lakeSrc;
-          installArtifacts = false;
-          # Merge .lake artifacts from both C and Rust library builds
-          prePatch = ''
-            rsync -a ${blake3C}/.lake/ .lake/
-            rsync -a ${blake3Rust}/.lake/ .lake/
-            chmod -R +w .lake
+          linkBlake3Src = ''
+            ln -s ${blake3.outPath} ./blake3
           '';
-          postPatch = disableGitClone + disableCargoBuild;
-          preConfigure = linkBlake3Src;
-          postConfigure = linkRustLib;
-        };
-      in {
-        packages = {
-          default = blake3C;
-          rust = blake3Rust;
-        };
+          # Copy the `blake3_rs` static lib from Crane to `target/release` so Lake can use it
+          linkRustLib = ''
+            mkdir -p rust/target/release
+            ln -s ${rustPkg}/lib/libblake3_rs.a rust/target/release/
+          '';
 
-        checks = {
-          # Lint the Rust FFI crate; warnings are errors.
-          clippy = craneLib.cargoClippy (
+          # Pins the Rust toolchain
+          rustToolchain = fenix.packages.${system}.fromToolchainFile {
+            file = ./rust-toolchain.toml;
+            sha256 = "sha256-sqSWJDUxc+zaz1nBWMAJKTAGBuGWP25GCftIOlCEAtA=";
+          };
+
+          # Rust package
+          craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+          craneArgs = {
+            src = craneLib.cleanCargoSource ./rust;
+            strictDeps = true;
+
+            # `lean-ffi` uses `LEAN_SYSROOT` to locate `lean.h` for bindgen
+            LEAN_SYSROOT = "${lean}";
+            # bindgen needs libclang to parse C headers
+            LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+
+            buildInputs =
+              [ ]
+              ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+                # Additional darwin specific inputs can be set here
+                pkgs.libiconv
+              ];
+          };
+          # Build dependencies once and share them across the package build and
+          # the clippy check instead of recompiling them per consumer.
+          cargoArtifacts = craneLib.buildDepsOnly craneArgs;
+          # doCheck = false: the crate has no Rust unit tests, and the Lean
+          # `blake3-test` check is where the suite runs.
+          rustPkg = craneLib.buildPackage (
             craneArgs
             // {
               inherit cargoArtifacts;
-              cargoClippyExtraArgs = "--all-targets -- -D warnings";
+              doCheck = false;
             }
           );
-          # Run the Lean test suite (exercises both the C and Rust backends)
-          # at check time so it runs via `nix flake check`.
-          blake3-test = pkgs.runCommand "blake3-test" {} ''
-            ${blake3Test}/bin/Blake3Test
-            touch $out
-          '';
-        };
-        devShells.default = pkgs.mkShell {
-          # Add libclang for FFI with rust-bindgen
-          LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
-          packages = with pkgs; [
-            clang
-            lean
-            rustToolchain
-            rust-analyzer
-          ];
-        };
 
-        formatter = pkgs.alejandra;
-      };
+          blake3C = lake2nix.mkPackage {
+            name = "Blake3C";
+            src = lakeSrc;
+            buildLibrary = true;
+            postPatch = disableGitClone;
+            preConfigure = linkBlake3Src;
+            postInstall = ''
+              cp -rP ./blake3 $out
+            '';
+          };
+
+          blake3Rust = lake2nix.mkPackage {
+            name = "Blake3Rust";
+            src = lakeSrc;
+            postPatch = disableCargoBuild;
+            postConfigure = linkRustLib;
+            postInstall = ''
+              cp -rP rust/target/ $out/rust/target/
+            '';
+          };
+
+          blake3Test = lake2nix.mkPackage {
+            name = "Blake3Test";
+            src = lakeSrc;
+            installArtifacts = false;
+            # Merge .lake artifacts from both C and Rust library builds
+            prePatch = ''
+              rsync -a ${blake3C}/.lake/ .lake/
+              rsync -a ${blake3Rust}/.lake/ .lake/
+              chmod -R +w .lake
+            '';
+            postPatch = disableGitClone + disableCargoBuild;
+            preConfigure = linkBlake3Src;
+            postConfigure = linkRustLib;
+          };
+        in
+        {
+          packages = {
+            default = blake3C;
+            rust = blake3Rust;
+          };
+
+          checks = {
+            # Lint the Rust FFI crate; warnings are errors.
+            clippy = craneLib.cargoClippy (
+              craneArgs
+              // {
+                inherit cargoArtifacts;
+                cargoClippyExtraArgs = "--all-targets -- -D warnings";
+              }
+            );
+            # Run the Lean test suite (exercises both the C and Rust backends)
+            # at check time so it runs via `nix flake check`.
+            blake3-test = pkgs.runCommand "blake3-test" { } ''
+              ${blake3Test}/bin/Blake3Test
+              touch $out
+            '';
+          };
+          devShells.default = pkgs.mkShell {
+            # Add libclang for FFI with rust-bindgen
+            LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+            packages = with pkgs; [
+              clang
+              lean
+              rustToolchain
+              rust-analyzer
+            ];
+          };
+
+          # The treefmt wrapper around `nixfmt`, so `nix fmt .` can take a
+          # directory; bare `nixfmt` only accepts individual files.
+          formatter = pkgs.nixfmt-tree;
+        };
     };
 }
