@@ -13,7 +13,7 @@
   inputs = {
     nixpkgs.follows = "lean4-nix/nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    lean4-nix.url = "github:lenianiva/lean4-nix";
+    lean4-nix.url = "github:argumentcomputer/lean4-nix";
     blake3 = {
       url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.8.4";
       flake = false;
@@ -29,7 +29,6 @@
   };
 
   outputs = inputs @ {
-    nixpkgs,
     flake-parts,
     lean4-nix,
     blake3,
@@ -50,7 +49,10 @@
         pkgs,
         ...
       }: let
-        lake2nix = pkgs.callPackage lean4-nix.lake {};
+        # Pins the Lean toolchain; a plain derivation, no overlay involved
+        lean = lean4-nix.lib.${system}.fromToolchainFile ./lean-toolchain;
+
+        lake2nix = pkgs.callPackage lean4-nix.lake {inherit lean;};
 
         # Filter out build directories
         lakeSrc = pkgs.lib.cleanSourceWith {
@@ -95,7 +97,7 @@
           strictDeps = true;
 
           # `lean-ffi` uses `LEAN_SYSROOT` to locate `lean.h` for bindgen
-          LEAN_SYSROOT = "${pkgs.lean.lean-all}";
+          LEAN_SYSROOT = "${lean}";
           # bindgen needs libclang to parse C headers
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
 
@@ -155,11 +157,6 @@
           postConfigure = linkRustLib;
         };
       in {
-        _module.args.pkgs = import nixpkgs {
-          inherit system;
-          overlays = [(lean4-nix.readToolchainFile ./lean-toolchain)];
-        };
-
         packages = {
           default = blake3C;
           rust = blake3Rust;
@@ -186,7 +183,7 @@
           LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
           packages = with pkgs; [
             clang
-            lean.lean-all
+            lean
             rustToolchain
             rust-analyzer
           ];
