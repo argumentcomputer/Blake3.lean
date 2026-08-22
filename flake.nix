@@ -76,8 +76,10 @@
           disableCargoBuild = ''
             substituteInPlace lakefile.lean --replace-fail 'proc { cmd := "cargo"' '--proc { cmd := "cargo"'
           '';
+          # `-fn` so it overwrites the symlink rsynced in from a prior stage's `.lake`
           linkBlake3Src = ''
-            ln -s ${blake3.outPath} ./blake3
+            mkdir -p .lake
+            ln -sfn ${blake3.outPath} .lake/blake3-source
           '';
           # Copy the `blake3_rs` static lib from Crane to `target/release` so Lake can use it
           linkRustLib = ''
@@ -128,9 +130,6 @@
             buildLibrary = true;
             postPatch = disableGitClone;
             preConfigure = linkBlake3Src;
-            postInstall = ''
-              cp -rP ./blake3 $out
-            '';
           };
 
           blake3Rust = lake2nix.mkPackage {
