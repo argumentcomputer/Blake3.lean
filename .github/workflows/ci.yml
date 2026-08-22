@@ -28,6 +28,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          # Warning handling lives in `rust/.cargo/config.toml` via
+          # `build.warnings`, which applies to local packages only. The action
+          # defaults to `-D warnings`, which also denies dependency warnings.
+          rustflags: ""
       # Only restore the cache, since the `test` job will save the test binary to the cache first
       - uses: actions/cache/restore@v6
         with:

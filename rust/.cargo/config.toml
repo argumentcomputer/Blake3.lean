@@ -1,0 +1,4 @@
+[build]
+# Deny warnings from local packages; replaces RUSTFLAGS="-D warnings" in CI
+# (which invalidates the build cache and also applies to dependencies).
+warnings = "deny"

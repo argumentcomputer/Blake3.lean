@@ -90,7 +90,7 @@
           # Pins the Rust toolchain
           rustToolchain = fenix.packages.${system}.fromToolchainFile {
             file = ./rust-toolchain.toml;
-            sha256 = "sha256-sqSWJDUxc+zaz1nBWMAJKTAGBuGWP25GCftIOlCEAtA=";
+            sha256 = "sha256-P30Tm3O7vQAE725YtDCDHGjNrSsfZO4us11UwJGZSJo=";
           };
 
           # Rust package
@@ -164,12 +164,13 @@
           };
 
           checks = {
-            # Lint the Rust FFI crate; warnings are errors.
+            # Lint the Rust FFI crate; `build.warnings` in rust/.cargo/config.toml
+            # promotes warnings to errors.
             clippy = craneLib.cargoClippy (
               craneArgs
               // {
                 inherit cargoArtifacts;
-                cargoClippyExtraArgs = "--all-targets -- -D warnings";
+                cargoClippyExtraArgs = "--all-targets";
               }
             );
             # Run the Lean test suite (exercises both the C and Rust backends)
