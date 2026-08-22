@@ -8,11 +8,15 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-crate-type = ["staticlib"]
+# `staticlib` is linked into final Lean executables. `cdylib` additionally
+# builds a position-independent shared object exporting the raw `rs_blake3_*`
+# symbols, so they can be loaded at runtime — e.g. by Lean's native evaluator
+# for `native_decide` proofs elaborated before any executable is linked.
+crate-type = ["staticlib", "cdylib"]
 
 [dependencies]
-blake3 = "1.8.4"
-lean-ffi = { git = "https://github.com/argumentcomputer/lean-ffi", rev = "cc98ebf67bf453ac3827cb767f78b13ea674dd6a" }
+blake3 = "1.8.7"
+lean-ffi = { git = "https://github.com/argumentcomputer/lean-ffi", rev = "2a9c91eba44ea791978a086a6a19b3a922edfee5" }
 
 [profile.dev]
 panic = "abort"

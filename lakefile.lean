@@ -12,7 +12,7 @@ lean_exe Blake3Test
 
 -- BLAKE3 C source
 abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
-abbrev blake3RepoTag := "1.8.4"
+abbrev blake3RepoTag := "1.8.7"
 
 target cloneBlake3 pkg : GitRepo := do
   let repoDir : GitRepo := pkg.dir / "blake3"
@@ -86,4 +86,13 @@ target blake3_rs pkg : System.FilePath := do
 lean_lib Blake3Rust where
   roots := #[`Blake3.Rust]
   moreLinkObjs := #[blake3_rs]
+
+/-- The `blake3-rs` shared library. Produced by the same `cargo build` as
+`blake3_rs`; this target selects the `cdylib` output for downstream tooling
+that loads the raw `rs_blake3_*` symbols at runtime rather than linking them
+statically — e.g. supplying the BLAKE3 backend to Lean's native evaluator for
+`native_decide` proofs. -/
+target blake3_rs_shared pkg : System.FilePath := do
+  proc { cmd := "cargo", args := #["build", "--release"], cwd := pkg.dir / "rust" } (quiet := true)
+  inputBinFile $ pkg.dir / "rust" / "target" / "release" / nameToSharedLib "blake3_rs"
 
