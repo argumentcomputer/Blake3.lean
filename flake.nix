@@ -15,7 +15,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     lean4-nix.url = "github:argumentcomputer/lean4-nix";
     blake3 = {
-      url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.8.4";
+      url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.8.7";
       flake = false;
     };
     # Rust-related inputs
