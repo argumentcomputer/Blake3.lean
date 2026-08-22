@@ -15,7 +15,11 @@ abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
 abbrev blake3RepoTag := "1.8.7"
 
 target cloneBlake3 pkg : GitRepo := do
-  let repoDir : GitRepo := pkg.dir / "blake3-source"
+  -- Under `.lake` rather than the package root: it is already untracked, and a
+  -- sibling `blake3` directory would collide with `Blake3` on case-insensitive
+  -- filesystems (macOS, Windows). `lake clean` only clears `.lake/build`, so the
+  -- clone survives.
+  let repoDir : GitRepo := pkg.lakeDir / "blake3-source"
 
   -- Clone if it hasn't already been cloned
   let alreadyCloned ← repoDir.dir.pathExists
