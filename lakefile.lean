@@ -4,15 +4,16 @@ open Lake DSL
 
 package Blake3
 
-/- Passing the `precompile` option (e.g. `options = {precompile = "on"}` on the
-downstream `[[require]]`, or `with NameMap.empty.insert `precompile "on"` in a
-`lakefile.lean` require) precompiles these libs so the C/Rust FFI symbols are
-auto-loaded into elaborating processes (batch builds and language-server
-workers) — needed by consumers that call Blake3 in `#eval` at elaboration
-time. Off by default: without the option, behavior is unchanged. -/
+/- Precompiled so the C/Rust FFI symbols are auto-loaded into elaborating
+processes -- batch builds and language-server workers alike. Without this,
+any consumer that reaches the FFI at elaboration time (`#eval`, or
+`native_decide` over a hash) fails outright with "Could not find native
+implementation of external declaration", and cannot fix it from their side.
+The cost is one shared-library link per lib, measured at ~0.3s on a cold
+build of a consumer that links an executable, and nothing on rebuilds. -/
 @[default_target]
 lean_lib Blake3 where
-  precompileModules := (get_config? precompile).isSome
+  precompileModules := true
 
 @[test_driver]
 lean_exe Blake3Test
@@ -85,7 +86,7 @@ target blake3_c pkg : System.FilePath := do
   buildStaticLib (pkg.staticLibDir / name) oFileJobs
 
 lean_lib Blake3C where
-  precompileModules := (get_config? precompile).isSome
+  precompileModules := true
   roots := #[`Blake3.C]
   moreLinkObjs := #[blake3_c]
 
@@ -96,7 +97,7 @@ target blake3_rs pkg : System.FilePath := do
   inputBinFile $ pkg.dir / "rust" / "target" / "release" / libName
 
 lean_lib Blake3Rust where
-  precompileModules := (get_config? precompile).isSome
+  precompileModules := true
   roots := #[`Blake3.Rust]
   moreLinkObjs := #[blake3_rs]
 
