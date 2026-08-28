@@ -8,11 +8,10 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-# `staticlib` is linked into final Lean executables. `cdylib` additionally
-# builds a position-independent shared object exporting the raw `rs_blake3_*`
-# symbols, so they can be loaded at runtime — e.g. by Lean's native evaluator
-# for `native_decide` proofs elaborated before any executable is linked.
-crate-type = ["staticlib", "cdylib"]
+# Linked into the precompiled Lean shared libraries and into final
+# executables. A `cdylib` is not needed: `precompileModules` bundles these
+# symbols into each lib's shared object, which Lake loads for importers.
+crate-type = ["staticlib"]
 
 [dependencies]
 blake3 = "1.8.7"
