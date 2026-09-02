@@ -4,8 +4,16 @@ open Lake DSL
 
 package Blake3
 
+/- Precompiled so the C/Rust FFI symbols are auto-loaded into elaborating
+processes -- batch builds and language-server workers alike. Without this,
+any consumer that reaches the FFI at elaboration time (`#eval`, or
+`native_decide` over a hash) fails outright with "Could not find native
+implementation of external declaration", and cannot fix it from their side.
+The cost is one shared-library link per lib, measured at ~0.3s on a cold
+build of a consumer that links an executable, and nothing on rebuilds. -/
 @[default_target]
-lean_lib Blake3
+lean_lib Blake3 where
+  precompileModules := true
 
 @[test_driver]
 lean_exe Blake3Test
@@ -78,6 +86,7 @@ target blake3_c pkg : System.FilePath := do
   buildStaticLib (pkg.staticLibDir / name) oFileJobs
 
 lean_lib Blake3C where
+  precompileModules := true
   roots := #[`Blake3.C]
   moreLinkObjs := #[blake3_c]
 
@@ -88,15 +97,7 @@ target blake3_rs pkg : System.FilePath := do
   inputBinFile $ pkg.dir / "rust" / "target" / "release" / libName
 
 lean_lib Blake3Rust where
+  precompileModules := true
   roots := #[`Blake3.Rust]
   moreLinkObjs := #[blake3_rs]
-
-/-- The `blake3-rs` shared library. Produced by the same `cargo build` as
-`blake3_rs`; this target selects the `cdylib` output for downstream tooling
-that loads the raw `rs_blake3_*` symbols at runtime rather than linking them
-statically — e.g. supplying the BLAKE3 backend to Lean's native evaluator for
-`native_decide` proofs. -/
-target blake3_rs_shared pkg : System.FilePath := do
-  proc { cmd := "cargo", args := #["build", "--release"], cwd := pkg.dir / "rust" } (quiet := true)
-  inputBinFile $ pkg.dir / "rust" / "target" / "release" / nameToSharedLib "blake3_rs"
 
