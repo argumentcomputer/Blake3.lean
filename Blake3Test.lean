@@ -1,5 +1,6 @@
 import Blake3.C
 import Blake3.Rust
+import Tests.Pure
 
 open Blake3
 
@@ -77,4 +78,6 @@ def main (args : List String) : IO UInt32 := do
   let mut ok := true
   if runC    then ok := (← runTests Blake3.C.Hasher) && ok
   if runRust then ok := (← runTests Blake3.Rust.Hasher) && ok
+  if args.isEmpty || args.contains "pure" || runC || runRust then
+    Blake3.PureTests.run runC runRust
   return if ok then 0 else 1

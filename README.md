@@ -1,6 +1,7 @@
 # Blake3.lean
 
-Lean bindings to the [BLAKE3 hasher](https://github.com/BLAKE3-team/BLAKE3) for the C and Rust implementations.
+The [BLAKE3 hash function](https://github.com/BLAKE3-team/BLAKE3) in Lean:
+C and Rust bindings, plus a total pure Lean implementation with checked proofs.
 
 ## Usage
 
@@ -19,6 +20,47 @@ import Blake3.C
 def main : IO Unit := do
   let hash := Blake3.C.hash ⟨#[72, 101, 108, 108, 111]⟩  -- "Hello"
   IO.println s!"BLAKE3: {hash.val.toList}"
+```
+
+### Pure Lean hashing
+
+```lean
+import Blake3.Pure
+
+def helloHash : Blake3.Blake3Hash :=
+  Blake3.Pure.hash "Hello".toUTF8
+```
+
+`Blake3.Pure.hash` computes an unkeyed 32-byte digest entirely in Lean. Its
+definitions are exposed for kernel reduction and proof. It imports neither
+FFI backend and has no dependencies beyond this package and Lean's standard
+library. Import `Blake3.Pure.Proofs` for byte/word round trips, rotation and
+message-schedule properties, exact block framing, canonical tree correctness
+and uniqueness, and chunk-counter bounds for inputs shorter than 2^64 bytes.
+
+The pure API currently supports one-shot unkeyed hashing. The C and Rust
+backends provide the `HasherOps` interface, including streaming, keyed hashing,
+key derivation and variable-length output. The pure implementation prioritizes
+explicit checked computation; no performance parity with the native backends
+is claimed. The proofs establish the stated algorithmic properties. Collision
+resistance and universal refinement of C or Rust are separate obligations.
+
+`lake test` runs the existing backend tests, two standard known answers,
+258 pure/native comparisons at block and tree boundaries, 58 subtree
+compositions, 42 native chunk vectors including large counters, and 64
+internal-parent/digest-pair vectors. It also audits the exact axiom sets of
+50 proof roots by traversing checked types, bodies and inductive constructors.
+These roots use only `propext`, `Classical.choice` and `Quot.sound`, with no
+FFI, opaque BLAKE3 implementation or native-decision axiom in their dependency
+closure. The audit checks three generated recursion workers against their
+safe source definitions; Lean/Std runtime primitives remain an execution
+boundary.
+
+Regenerate the component vectors from the pinned Rust dependency with:
+
+```sh
+cd rust
+cargo run --locked --release --example pure_vectors > ../Tests/PureVectors.lean
 ```
 
 ### Rust backend
