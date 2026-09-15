@@ -18,6 +18,9 @@ lean_lib Blake3 where
 @[test_driver]
 lean_exe Blake3Test
 
+lean_lib Blake3Tests where
+  roots := #[`Tests.Pure, `Tests.PureAudit, `Tests.Vectors, `Tests.PureVectors]
+
 -- BLAKE3 C source
 abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
 abbrev blake3RepoTag := "1.8.7"
@@ -100,4 +103,3 @@ lean_lib Blake3Rust where
   precompileModules := true
   roots := #[`Blake3.Rust]
   moreLinkObjs := #[blake3_rs]
-
