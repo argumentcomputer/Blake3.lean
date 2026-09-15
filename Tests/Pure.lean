@@ -19,6 +19,9 @@ private def lengths : List Nat :=
     (((List.range 17).map (· + 1) ++ [32, 64, 128]).flatMap fun chunks =>
       [chunks * 1024 - 1, chunks * 1024, chunks * 1024 + 1])).eraseDups
 
+private def hex (bytes : List UInt8) : String :=
+  String.ofList (bytes.flatMap fun byte => [Nat.digitChar (byte.toNat / 16), Nat.digitChar (byte.toNat % 16)])
+
 private def knownAnswer (input : ByteArray) (expected : List UInt8) : IO Unit := do
   unless (Pure.hash input).val.data.toList == expected do
     throw (IO.userError "pure Blake3 known-answer test failed")
@@ -52,22 +55,25 @@ def run (compareC compareRust : Bool) : IO Unit := do
       let parent := Pure.parentOutput left.chainingValue right.chainingValue
       unless parent.rootHash.toList == actual.data.toList do throw (IO.userError "pure Blake3 subtree composition differs")
   unless trees == 58 do throw (IO.userError "incomplete pure Blake3 tree cases")
-  unless chunkVectors.length == 42 && parentVectors.length == 64 do
+  if compareRust then
+    unless vectors.reference == Rust.version do
+      throw (IO.userError s!"native component vectors are from BLAKE3 {vectors.reference}, Rust backend is {Rust.version}")
+  unless vectors.chunks.length == 42 && vectors.parents.length == 64 do
     throw (IO.userError "incomplete native component vectors")
-  for (counter, length, expected) in chunkVectors do
-    let input := testInput length (counter % 251)
-    let actual := Pure.cvBytes (Pure.chunkOutput counter.toUInt64 input.data.toList).chainingValue
-    unless actual.toList == expected do throw (IO.userError s!"pure Blake3 chunk differs at {counter}, {length}")
-  for ((expectedCV, expectedRoot, expectedOrdinary), salt) in parentVectors.zipIdx do
-    let left := testInput 32 salt
-    let right := testInput 32 (salt + 83)
+  for chunk in vectors.chunks do
+    let input := testInput chunk.length (chunk.counter % 251)
+    let actual := Pure.cvBytes (Pure.chunkOutput chunk.counter.toUInt64 input.data.toList).chainingValue
+    unless hex actual.toList == chunk.cv do throw (IO.userError s!"pure Blake3 chunk differs at {chunk.counter}, {chunk.length}")
+  for parent in vectors.parents do
+    let left := testInput 32 parent.salt
+    let right := testInput 32 (parent.salt + 83)
     let cv := fun bytes : ByteArray => Vector.ofFn fun word : Fin 8 =>
       Pure.bytesWord (Vector.ofFn fun byte : Fin 4 => bytes[word.val * 4 + byte.val]!)
-    let parent := Pure.parentOutput (cv left) (cv right)
-    unless (Pure.cvBytes parent.chainingValue).toList == expectedCV && parent.rootHash.toList == expectedRoot do
-      throw (IO.userError "pure Blake3 internal parent differs")
-    unless (Pure.hash (left ++ right)).val.data.toList == expectedOrdinary do
-      throw (IO.userError "pure Blake3 digest-pair hash differs")
+    let output := Pure.parentOutput (cv left) (cv right)
+    unless hex (Pure.cvBytes output.chainingValue).toList == parent.cv && hex output.rootHash.toList == parent.root do
+      throw (IO.userError s!"pure Blake3 internal parent differs at salt {parent.salt}")
+    unless hex (Pure.hash (left ++ right)).val.data.toList == parent.ordinary do
+      throw (IO.userError s!"pure Blake3 digest-pair hash differs at salt {parent.salt}")
   IO.println s!"Pure Blake3: 2 known answers, 258 inputs, 58 splits, 42 chunks and 64 parents passed (C={compareC}, Rust={compareRust})"
 
 end Blake3.PureTests

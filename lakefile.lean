@@ -19,7 +19,7 @@ lean_lib Blake3 where
 lean_exe Blake3Test
 
 lean_lib Blake3Tests where
-  roots := #[`Tests.Pure, `Tests.PureAudit, `Tests.PureVectors]
+  roots := #[`Tests.Pure, `Tests.PureAudit, `Tests.Vectors, `Tests.PureVectors]
 
 -- BLAKE3 C source
 abbrev blake3RepoURL := "https://github.com/BLAKE3-team/BLAKE3"
