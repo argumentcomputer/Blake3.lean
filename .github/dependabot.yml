@@ -1,9 +1,24 @@
 version: 2
 updates:
+  - package-ecosystem: "cargo"
+    directory: "/rust"
+    pull-request-branch-name:
+      separator: "-"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    groups:
+      rust-dependencies:
+        patterns:
+          - "*"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     groups:
       actions-dependencies:
         patterns:
