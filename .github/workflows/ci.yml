@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: actions-rust-lang/setup-rust-toolchain@ecabd13d1c56bd1345c230e542e9144811ad706f # v2.0.0
-      - uses: leanprover/lean-action@50fcf42d2e460296f1a34b402e990d1b24f8b596 # v1.6.0
+      - uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # v1.6.1
         with:
           build-args: "--wfail"
           test: true
@@ -45,7 +45,7 @@ jobs:
           path: ./.lake
           key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.sha }}
           restore-keys: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}
-      - uses: leanprover/lean-action@50fcf42d2e460296f1a34b402e990d1b24f8b596 # v1.6.0
+      - uses: leanprover/lean-action@f061402b660e0c34644504b324e830f2991d4865 # v1.6.1
         with:
           auto-config: false
           build: true
