@@ -56,6 +56,10 @@ abbrev blake3Flags : Array String := #[
 
 abbrev compiler := "cc"
 
+/-- Optimize the C as Lean's own C is optimized. `buildO` adds no `-O` flag of its own, so without this the
+BLAKE3 sources are compiled at `-O0`. It is a trace argument, so builds made without it are rebuilt. -/
+abbrev optimizeArgs : Array String := #["-O3"]
+
 def buildBlake3Obj (pkg : Package) (fileName : String) := do
   let blake3Repo ← cloneBlake3.fetch >>= (·.await)
   let cDir := blake3CDir blake3Repo
@@ -64,7 +68,7 @@ def buildBlake3Obj (pkg : Package) (fileName : String) := do
   let includeArgs := #["-fPIC", "-I", cDir.toString]
   let weakArgs := includeArgs ++ blake3Flags
 
-  buildO oFile srcJob weakArgs #[] compiler getLeanTrace
+  buildO oFile srcJob weakArgs optimizeArgs compiler getLeanTrace
 
 -- C FFI
 target ffi_c pkg : System.FilePath := do
@@ -75,7 +79,7 @@ target ffi_c pkg : System.FilePath := do
   let cDir := blake3CDir blake3Repo
   let weakArgs := #["-fPIC", "-I", leanIncludeDir.toString, "-I", cDir.toString]
 
-  buildO oFile srcJob weakArgs #[] compiler getLeanTrace
+  buildO oFile srcJob weakArgs optimizeArgs compiler getLeanTrace
 
 target blake3_c pkg : System.FilePath := do
   -- Gather all `.o` file build jobs
