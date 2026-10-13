@@ -13,7 +13,7 @@
   inputs = {
     nixpkgs.follows = "lean4-nix/nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    lean4-nix.url = "github:argumentcomputer/lean4-nix";
+    lean4-nix.url = "github:argumentcomputer/lean4-nix/install-modes";
     blake3 = {
       url = "github:BLAKE3-team/BLAKE3?ref=refs/tags/1.8.7";
       flake = false;
@@ -145,7 +145,7 @@
           blake3Test = lake2nix.mkPackage {
             name = "Blake3Test";
             src = lakeSrc;
-            installArtifacts = false;
+            installBin = true;
             # Merge .lake artifacts from both C and Rust library builds
             prePatch = ''
               rsync -a ${blake3C}/.lake/ .lake/
