@@ -5,6 +5,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0
 
 import Lean
 import Blake3.Pure.Proofs
+import Blake3.Pure.Tree
 
 open Lean Lean.Elab Command
 
@@ -60,7 +61,9 @@ private def roots : Array (Name × Array Name) := #[
   (`Blake3.Pure.digest_tree, #[``propext, ``Quot.sound]),
   (`Blake3.Pure.hash_size, #[``propext, ``Quot.sound]),
   (`Blake3.Pure.hash_digest, #[``propext, ``Quot.sound]),
-  (`Blake3.Pure.hash_tree, #[``propext, ``Quot.sound])]
+  (`Blake3.Pure.hash_tree, #[``propext, ``Quot.sound]),
+  (`Blake3.Pure.mergeLevels_chunkOutputs, #[``propext, ``Quot.sound]),
+  (`Blake3.Pure.digest_eq_mergeLevels, #[``propext, ``Quot.sound])]
 
 private def constants (info : Lean.ConstantInfo) : Array Lean.Name :=
   info.type.getUsedConstants ++ match info with
@@ -153,8 +156,10 @@ run_cmd do
         | .opaqueInfo _ => throwError "Opaque BLAKE3 implementation: {name}"
         | _ => pure ()
   unless workers.qsort Name.lt == #[`Blake3.Pure.chunkLoop._unsafe_rec,
-      `Blake3.Pure.encodeLittleEndian._unsafe_rec, `Blake3.Pure.subtree._unsafe_rec] do
+      `Blake3.Pure.chunkOutputs._unsafe_rec, `Blake3.Pure.encodeLittleEndian._unsafe_rec,
+      `Blake3.Pure.mergeLevels._unsafe_rec, `Blake3.Pure.pairOutputs._unsafe_rec,
+      `Blake3.Pure.subtree._unsafe_rec] do
     throwError "BLAKE3 recursion inventory changed: {workers}"
-  logInfo "Pure BLAKE3 audit: 50 exact axiom sets, 3 safe recursion sources, no BLAKE3 FFI or opaque implementations"
+  logInfo "Pure BLAKE3 audit: 52 exact axiom sets, 6 safe recursion sources, no BLAKE3 FFI or opaque implementations"
 
 end Blake3.PureAudit
