@@ -37,6 +37,10 @@ FFI backend and has no dependencies beyond this package and Lean's standard
 library. Import `Blake3.Pure.Proofs` for byte/word round trips, rotation and
 message-schedule properties, exact block framing, canonical tree correctness
 and uniqueness, and chunk-counter bounds for inputs shorter than 2^64 bytes.
+Import `Blake3.Pure.Tree` for the bottom-up form streaming implementations
+compute: the canonical tree is the outputs of the 1024-byte chunks merged level
+by level, adjacent chaining values paired and an odd last one carried up
+(`mergeLevels_chunkOutputs`, `digest_eq_mergeLevels`).
 
 The pure API currently supports one-shot unkeyed hashing. The C and Rust
 backends provide the `HasherOps` interface, including streaming, keyed hashing,
@@ -46,13 +50,14 @@ is claimed. The proofs establish the stated algorithmic properties. Collision
 resistance and universal refinement of C or Rust are separate obligations.
 
 `lake test` runs the existing backend tests, two standard known answers,
-258 pure/native comparisons at block and tree boundaries, 58 subtree
+258 pure/native comparisons at block and tree boundaries (each also merged level
+by level), 58 subtree
 compositions, 42 native chunk vectors including large counters, and 64
 internal-parent/digest-pair vectors. It also audits the exact axiom sets of
-50 proof roots by traversing checked types, bodies and inductive constructors.
+52 proof roots by traversing checked types, bodies and inductive constructors.
 These roots use only `propext`, `Classical.choice` and `Quot.sound`, with no
 FFI, opaque BLAKE3 implementation or native-decision axiom in their dependency
-closure. The audit checks three generated recursion workers against their
+closure. The audit checks six generated recursion workers against their
 safe source definitions; Lean/Std runtime primitives remain an execution
 boundary.
 

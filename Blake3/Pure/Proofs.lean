@@ -181,14 +181,14 @@ theorem chunkLoop_small (counter : UInt64) (cv : CV) (start : Bool) (input : Lis
     (small : input.length ≤ 64) :
     chunkLoop counter cv start input =
       ⟨cv, blockWords input, input.length.toUInt32, counter, (if start then 1 else 0) ||| 2⟩ := by
-  rw [chunkLoop, dif_pos small]
+  rw [chunkLoop, dite_eq_left small]
 
 theorem chunkLoop_step (counter : UInt64) (cv : CV) (start : Bool) (input : List UInt8)
     (large : 64 < input.length) :
     chunkLoop counter cv start input =
       chunkLoop counter (compress cv (blockWords (input.take 64)) counter 64 (if start then 1 else 0))
         false (input.drop 64) := by
-  rw [chunkLoop, dif_neg (by omega)]
+  rw [chunkLoop, dite_eq_right (by omega)]
 
 theorem chunkLoop_counter (counter : UInt64) (cv : CV) (start : Bool) (input : List UInt8) :
     (chunkLoop counter cv start input).counter = counter := by
@@ -286,13 +286,13 @@ theorem chunkOutput_framing (counter : UInt64) (input : List UInt8) (bounded : i
 
 theorem subtree_small (counter : Nat) (input : List UInt8) (small : input.length ≤ 1024) :
     subtree counter input = chunkOutput counter.toUInt64 input := by
-  rw [subtree, dif_pos small]
+  rw [subtree, dite_eq_left small]
 
 theorem subtree_step (counter : Nat) (input : List UInt8) (large : 1024 < input.length) :
     subtree counter input = parentOutput
       (subtree counter (input.take (leftLen input.length))).chainingValue
       (subtree (counter + leftLen input.length / 1024) (input.drop (leftLen input.length))).chainingValue := by
-  rw [subtree, dif_neg (by omega)]
+  rw [subtree, dite_eq_right (by omega)]
 
 theorem subtree_root_counter (input : List UInt8) : (subtree 0 input).counter = 0 := by
   by_cases small : input.length ≤ 1024

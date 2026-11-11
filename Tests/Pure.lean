@@ -4,6 +4,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0
 -/
 
 import Blake3.Pure.Proofs
+import Blake3.Pure.Tree
 import Blake3.C
 import Blake3.Rust
 import Tests.PureAudit
@@ -47,6 +48,8 @@ def run (compareC compareRust : Bool) : IO Unit := do
       unless actual == (C.hash input).val do throw (IO.userError s!"pure/C Blake3 differs at {length} bytes")
     if compareRust then
       unless actual == (Rust.hash input).val do throw (IO.userError s!"pure/Rust Blake3 differs at {length} bytes")
+    unless (Pure.mergeLevels (Pure.chunkOutputs 0 input.data.toList)).rootHash.toList == actual.data.toList do
+      throw (IO.userError s!"pure Blake3 level-by-level merge differs at {length} bytes")
     if length > 1024 then
       trees := trees + 1
       let split := Pure.leftLen length
@@ -74,6 +77,6 @@ def run (compareC compareRust : Bool) : IO Unit := do
       throw (IO.userError s!"pure Blake3 internal parent differs at salt {parent.salt}")
     unless hex (Pure.hash (left ++ right)).val.data.toList == parent.ordinary do
       throw (IO.userError s!"pure Blake3 digest-pair hash differs at salt {parent.salt}")
-  IO.println s!"Pure Blake3: 2 known answers, 258 inputs, 58 splits, 42 chunks and 64 parents passed (C={compareC}, Rust={compareRust})"
+  IO.println s!"Pure Blake3: 2 known answers, 258 inputs and their level-by-level merges, 58 splits, 42 chunks and 64 parents passed (C={compareC}, Rust={compareRust})"
 
 end Blake3.PureTests
