@@ -26,7 +26,7 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 [[package]]
 name = "bignat"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/lean-ffi?rev=163a661847d8171a685570ed12b4c03bfa092778#163a661847d8171a685570ed12b4c03bfa092778"
+source = "git+https://github.com/argumentcomputer/lean-ffi?rev=b926ee037ea122952d401640247285a185cfd320#b926ee037ea122952d401640247285a185cfd320"
 dependencies = [
  "num-bigint",
 ]
@@ -159,11 +159,12 @@ dependencies = [
 [[package]]
 name = "lean-ffi"
 version = "0.1.0"
-source = "git+https://github.com/argumentcomputer/lean-ffi?rev=163a661847d8171a685570ed12b4c03bfa092778#163a661847d8171a685570ed12b4c03bfa092778"
+source = "git+https://github.com/argumentcomputer/lean-ffi?rev=b926ee037ea122952d401640247285a185cfd320#b926ee037ea122952d401640247285a185cfd320"
 dependencies = [
  "bignat",
  "bindgen",
  "cc",
+ "clang-sys",
  "num-bigint",
 ]
 

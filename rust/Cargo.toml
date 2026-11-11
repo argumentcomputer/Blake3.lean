@@ -15,7 +15,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 blake3 = "1.8.7"
-lean-ffi = { git = "https://github.com/argumentcomputer/lean-ffi", rev = "163a661847d8171a685570ed12b4c03bfa092778" }
+lean-ffi = { git = "https://github.com/argumentcomputer/lean-ffi", rev = "b926ee037ea122952d401640247285a185cfd320" }
 
 [profile.dev]
 panic = "abort"
